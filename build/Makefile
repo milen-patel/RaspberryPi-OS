@@ -19,7 +19,7 @@ ASMSOURCES = $(wildcard $(KER_SRC)/*.S)
 OBJECTS = $(patsubst $(KER_SRC)/%.c, $(OBJ_DIR)/%.o, $(KERSOURCES))
 OBJECTS += $(patsubst $(COMMON_SRC)/%.c, $(OBJ_DIR)/%.o, $(COMMONSOURCES))
 OBJECTS += $(patsubst $(KER_SRC)/%.S, $(OBJ_DIR)/%.o, $(ASMSOURCES))
-HEADERS = $(wildcard $(KER_HEAD)/*.h)
+HEADERS = $(wildcard $(KER_HEAD)/kernel/*.h)
 
 IMG_NAME=kernel8.img
 
@@ -29,15 +29,12 @@ QMACHINE = raspi3b
 
 
 build: $(OBJECTS) $(HEADERS)
-	echo Done compiling object files..
-	echo $(OBJECTS)
-	echo Putting it all together
 	$(LLVMPATH)/ld.lld -m aarch64elf -nostdlib $(OBJECTS) -T link.ld -o kernel8.elf
 	$(LLVMPATH)/llvm-objcopy -O binary kernel8.elf kernel8.img
 
 $(OBJ_DIR)/%.o: $(KER_SRC)/%.c
 	mkdir -p $(@D)
-	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -I$(KER_HEAD) -c $< -o $@ $(CSRCFLAGS)
+	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -I ../include/common -I ../include/kernel -c $< -o $@ $(CSRCFLAGS)
 
 $(OBJ_DIR)/%.o: $(KER_SRC)/%.S
 	mkdir -p $(@D)
@@ -45,7 +42,7 @@ $(OBJ_DIR)/%.o: $(KER_SRC)/%.S
 
 $(OBJ_DIR)/%.o: $(COMMON_SRC)/%.c
 	mkdir -p $(@D)
-	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -I$(KER_HEAD) -c $< -o $@ $(CSRCFLAGS)
+	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -I ../include/common -I ../include/kernel -c $< -o $@ $(CSRCFLAGS)
 
 clean:
 	rm -rf $(OBJ_DIR)
