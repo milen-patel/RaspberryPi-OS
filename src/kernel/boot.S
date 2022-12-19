@@ -35,7 +35,8 @@ _start:
     cbnz    w2, 3b               // Loop if non-zero
 
     // Jump to our main() routine in C (make sure it doesn't return)
-4:  bl      main
+4:  mrs x0, mpidr_el1
+	bl      main
     // In case it does return, halt the master core too
 halt:
 	// This is ARM's no-op

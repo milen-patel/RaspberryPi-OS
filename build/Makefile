@@ -1,12 +1,11 @@
 # Don't use normal gcc, use the arm cross compiler
-CC = /usr/local/opt/llvm/bin/clang
 LLVMPATH = /usr/local/opt/llvm/bin
 
 CPU = cortex-a72+nosimd
 
 CFLAGS= -mcpu=$(CPU) -fpic -ffreestanding 
-CSRCFLAGS= -O2 -Wall -Wextra
-LFLAGS= -ffreestanding -O2 -nostdlib
+CSRCFLAGS= -O2 -Wall -Wextra -mgeneral-regs-only
+LFLAGS= -ffreestanding -O2 -nostdlib -nostartfiles
 
 # Location of the files
 KER_SRC = ../src/kernel
@@ -34,15 +33,15 @@ build: $(OBJECTS) $(HEADERS)
 
 $(OBJ_DIR)/%.o: $(KER_SRC)/%.c
 	mkdir -p $(@D)
-	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -I ../include/common -I ../include/kernel -c $< -o $@ $(CSRCFLAGS)
+	$(LLVMPATH)/clang --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -Iinclude -I ../include/kernel -c $< -o $@ $(CSRCFLAGS)
 
 $(OBJ_DIR)/%.o: $(KER_SRC)/%.S
 	mkdir -p $(@D)
-	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -c $< -o $@
+	$(LLVMPATH)/clang --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(COMMON_SRC)/%.c
 	mkdir -p $(@D)
-	$(CC) --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -I ../include/common -I ../include/kernel -c $< -o $@ $(CSRCFLAGS)
+	$(LLVMPATH)/clang --target=aarch64-elf $(CFLAGS) -I$(KER_SRC) -Iinclude -c $< -o $@ $(CSRCFLAGS)
 
 clean:
 	rm -rf $(OBJ_DIR)
