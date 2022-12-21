@@ -1,53 +1,33 @@
 # Don't use normal gcc, use the arm cross compiler
-COMPILER-PATH = /usr/local/Cellar/aarch64-unknown-linux-gnu/11.2.0/bin/aarch64-unknown-linux-gnu
+ARMGNU = /usr/local/Cellar/aarch64-unknown-linux-gnu/11.2.0/bin/aarch64-unknown-linux-gnu
 
-# Flags to be passed to gcc 
-C-COMPILER-FLAGS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only
-ASM-COMPILER-FLAGS = -Iinclude
+COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only
+ASMOPS = -Iinclude 
 
-# Location of the files
-OUTPUT-DIRECTORY = build
-SOURCE-DIRECTORY = src
+BUILD_DIR = build
+SRC_DIR = src
 
-IMG_NAME=kernel8.img
+all : clean kernel8.img
 
-# For running on the QEMU Emulator
-QEMUPATH = /usr/local/Cellar/qemu/7.1.0/bin
-QMACHINE = raspi3b
+clean :
+	rm -rf $(BUILD_DIR) *.img 
 
-# Gather all the source files
-C-FILES = $(wildcard $(SOURCE-DIRECTORY)/common/*.c)
-C-FILES += $(wildcard $(SOURCE-DIRECTORY)/kernel/*.c)
-ASM-FILES = $(wildcard $(SOURCE-DIRECTORY)/common/*.s)
-ASM-FILES += $(wildcard $(SOURCE-DIRECTORY)/kernel/*.s)
-
-# Compile the source files
-OBJECT-FILES = $(C-FILES:$(SOURCE-DIRECTORY)/%.c=$(OUTPUT-DIRECTORY)/%_c.o)
-OBJECT-FILES += $(ASM-FILES:$(SOURCE-DIRECTORY)/%.s=$(OUTPUT-DIRECTORY)/%_s.o)
-
-all: kernel
-
-# By default, the goal is the first target in the make file
-
-$(OUTPUT-DIRECTORY)/%_c.o: $(SOURCE-DIRECTORY)/%.c
+$(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER-PATH)-gcc $(C-COMPILER-FLAGS)  -c $< -o $@ 
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
-$(OUTPUT-DIRECTORY)/%_s.o: $(SOURCE-DIRECTORY)/%.s
+$(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
 	mkdir -p $(@D)
-	$(COMPILER-PATH)-gcc $(ASM-COMPILER-FLAGS) -c $< -o $@ 
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
-clean:
-	rm -rf $(OUTPUT-DIRECTORY)
-	rm *.img
+C_FILES = $(wildcard $(SRC_DIR)/*.c)
+ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
+OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
+OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 
-run: build
-	$(QEMUPATH)/qemu-system-aarch64 -M $(QMACHINE) -serial stdio -kernel kernel8.img 
+DEP_FILES = $(OBJ_FILES:%.o=%.d)
+-include $(DEP_FILES)
 
-kernel: $(OBJECT-FILES)
-	$(info    C FILES is $(C-FILES))
-	$(info    ASM FILES is $(ASM-FILES))
-	$(info    OBJECT FILES is $(OBJECT-FILES))
-	$(COMPILER-PATH)-ld -m aarch64elf -nostdlib $(OBJECT-FILES) -T $(SOURCE-DIRECTORY)/kernel/link.ld -o $(OUTPUT-DIRECTORY)/kernel8.elf
-	$(COMPILER-PATH)-objcopy -O binary $(OUTPUT-DIRECTORY)/kernel8.elf kernel8.img
-	echo "LMAO"
+kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
+	$(ARMGNU)-ld -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
+	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary kernel8.img
