@@ -27,12 +27,12 @@ proc_hang:
 
 master:
 	// Clear out the bss section
-	//adr x0, bss_begin
-	//adr x1, bss_end
-	//sub x1, x1, x0
-	//bl memzero
+	adr x0, bss_begin
+	adr x1, bss_end
+	sub x1, x1, x0
+	bl memzero
 
-	//// Set the stack pointer and jump to C
-	//mov sp, #START_OF_KERNEL_STACK
+	// Set the stack pointer and jump to C
+	mov sp, #START_OF_KERNEL_STACK
 	bl kmain
 	b proc_hang
