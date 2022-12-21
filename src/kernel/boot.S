@@ -1,3 +1,4 @@
+#include "memory-management.h"
 // This is where the kernel starts executing when the RPi turns on!
 // Our goal is to get out of assembly and start executing C code
 
@@ -11,34 +12,25 @@
 .global _start
 
 _start:
-	// TODO might need to disable other cores
+	// Get the processor id from the system register
+	mrs x0, mpidr_el1
+	and x0, x0, #0xFF
+	// Only CPU0 should continue
+	cbz x0, master
+	// If you make it here, you are not CPU0, so go into an infinite loop
+	b proc_hang
 
-    // Initialize the stack pointer for the C runtime environment
-	// The hardware does not load the kernel to address 0, instead it loads
-	// it to adress 0x80000 and then works towards higher addresses.
-	//
-	// So, we can set our stack point to this same address and use all the space
-	// down to address 0 since that is unused by the kernel but exists!
-    ldr     x5, =_start
-    mov     sp, x5
-
-    // Clean the BSS section, expected by C runtime environment
-    ldr     x1, =__bss_start     // Start address
-    ldr     w2, =__bss_size      // Size of the section
-	// Compare and branch on 0
-3:  cbz     w2, 4f               
-	// Store 0 (xzr is the zero register) to address in x1 in memory
-	// This also increments x1 (see https://stackoverflow.com/questions/37706031/difference-between-commands-with-and-without-in-arm-assembly)
-    str     xzr, [x1], #8
-	// Decrease remaining bss size needed to be cleared by 1
-    sub     w2, w2, #1
-    cbnz    w2, 3b               // Loop if non-zero
-
-    // Jump to our main() routine in C (make sure it doesn't return)
-4:  mrs x0, mpidr_el1
-	bl      main
-    // In case it does return, halt the master core too
-halt:
-	// This is ARM's no-op
+proc_hang:
+	// Spinning in an infinite loop is expensive, RPi is embedded so power is a concern. wfe helps with this
 	wfe
-	b halt
+	b proc_hang
+
+master:
+	// Clear out the bss section
+	adr x0, bss_begin
+	adr x1, bss_end
+	sub x1, x1, x0
+	bl memzero
+
+	// Set the stack pointer and jump to C
+	mov sp, #START_OF_KERNEL_STACK
