@@ -39,3 +39,9 @@ master:
 	bl kmain
 	// We shouldn't ever make it here, but if we somehow do, just spin the CPU
 	b proc_hang
+
+.global getExceptionLevel
+getExceptionLevel: 
+	mrs x0, CURRENTEL
+	lsr x0, x0, #2
+	ret
