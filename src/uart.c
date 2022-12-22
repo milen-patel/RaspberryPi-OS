@@ -27,29 +27,25 @@ void uart_init (void) {
 	put32(AUX_MU_CNTL_REG,3);  
 }
 
-char uart_recv (void) {
+void uart_send ( char c )
+{
 	while(1) {
-		if(get32(AUX_MU_LSR_REG)&0x01) 
-			break;
-	}
-	return(get32(AUX_MU_IO_REG)&0xFF);
-
-}
-
-void uart_send (char c) {
-while(1) {
 		if(get32(AUX_MU_LSR_REG)&0x20) 
 			break;
 	}
 	put32(AUX_MU_IO_REG,c);
 }
 
+char uart_recv ( void )
+{
+	while(1) {
+		if(get32(AUX_MU_LSR_REG)&0x01) 
+			break;
+	}
+	return(get32(AUX_MU_IO_REG)&0xFF);
+}
+
 void uart_send_string(char* str) {
-    /*
     while (*str != '\0')
         uart_send(*(str++));
-        */
-        for (int i = 0; str[i] != '\0'; i ++) {
-		uart_send((char)str[i]);
-	}
 }

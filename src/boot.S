@@ -15,8 +15,10 @@ _start:
 	// Get the processor id from the system register
 	mrs x0, mpidr_el1
 	and x0, x0, #0xFF
+
 	// Only CPU0 should continue
 	cbz x0, master
+
 	// If you make it here, you are not CPU0, so go into an infinite loop
 	b proc_hang
 
@@ -35,4 +37,5 @@ master:
 	// Set the stack pointer and jump to C
 	mov sp, #START_OF_KERNEL_STACK
 	bl kmain
+	// We shouldn't ever make it here, but if we somehow do, just spin the CPU
 	b proc_hang
