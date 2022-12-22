@@ -1,6 +1,6 @@
 #include "uart.h"
 #include "printf.h"
-#include "exception-level.h"
+#include "get-el.h"
 
 // Once boot.S finishes setting up the C runtime environment, it will defer execution to kmain
 void kmain(void) {

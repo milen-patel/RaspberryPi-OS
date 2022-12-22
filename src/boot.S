@@ -1,4 +1,5 @@
 #include "memory-management.h"
+#include "exception-level.h"
 // This is where the kernel starts executing when the RPi turns on!
 // Our goal is to get out of assembly and start executing C code
 
@@ -17,7 +18,7 @@ _start:
 	and x0, x0, #0xFF
 
 	// Only CPU0 should continue
-	cbz x0, master
+	cbz x0, init_exception_level
 
 	// If you make it here, you are not CPU0, so go into an infinite loop
 	b proc_hang
@@ -26,6 +27,33 @@ proc_hang:
 	// Spinning in an infinite loop is expensive, RPi is embedded so power is a concern. wfe helps with this
 	wfe
 	b proc_hang
+
+init_exception_level:
+	// In EL1, we want to disable the MMU, instruct processes to use little endian, and for now also disable caching
+	ldr x0, =SCTLR_VALUE_MMU_DISABLED
+	msr sctlr_el1, x0
+
+	// The Execution state for EL1 is AArch64
+	ldr x0, =HCR_VALUE
+	msr hcr_el2, x0
+
+	// Ensure low EL levels (i.e. 0 and 1) operate in non-secure world
+	ldr    x0, =SCR_VALUE
+    msr    scr_el3, x0
+
+	// Disable interrupts in EL1 and let EL1 use its own stack pointer instead of the EL0 sp
+	// This is also how we 'trick' the CPU into changing EL, part of the saved program register
+	// state includes the exception level that the exception was taken from. Right now we are in EL3,
+	// but if we say that the exception came from EL1 then when we eret, we will end up in EL1.
+	//
+	// See page 393 of the manual to exlain this and why we use 5 to get to EL1 and 9 for EL2
+	ldr    x0, =SPSR_VALUE
+    msr    spsr_el3, x0
+
+	// Now, we want to goto master and eret will also change the EL
+	adr x0, master
+	msr elr_el3, x0
+	eret
 
 master:
 	// Clear out the bss section

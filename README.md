@@ -3,7 +3,7 @@ Building an Operating System for the RPI From Scratch!
 
 # Task List
 1. Create Makefile to correctly compile stand-alone kernel
-2. In boot.S, disable all non-primary cores
+2. In boot.S, disable all non-primary cores and switch exception level to EL1 (whereas EL3 is the default)
 3. Set up GPIO Pins, initialize the miniUART
 4. Create interface for reading and writing to/from the UART
 5. Implement printf
