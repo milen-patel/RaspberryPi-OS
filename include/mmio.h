@@ -1,7 +1,7 @@
 #ifndef	_MMIO_H
 #define	_MMIO_H
 
-#define MMIO_BASE 0x3F000000
+#include "sys-registers/mmio_base.h"
 
 // Define the MMIO addresses for the GPIO pins
 #define GPFSEL1         (MMIO_BASE+0x00200004)

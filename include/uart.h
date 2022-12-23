@@ -19,6 +19,7 @@
 #define AUX_MU_BAUD_REG (MMIO_BASE+0x00215068)
 
 // The following functions are to be used to interact with the miniUART
+// You shouldn't rely on using these functions as printf() is clean wrapper around them
 
 // Setup the uart for read/write, this must be called before any call to uart_recv or uart_send
 void uart_init ( void );

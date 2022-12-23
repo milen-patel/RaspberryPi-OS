@@ -23,6 +23,7 @@ _start:
 	// If you make it here, you are not CPU0, so go into an infinite loop
 	b proc_hang
 
+.global proc_hang
 proc_hang:
 	// Spinning in an infinite loop is expensive, RPi is embedded so power is a concern. wfe helps with this
 	wfe
