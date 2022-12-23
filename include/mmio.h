@@ -2,13 +2,8 @@
 #define	_MMIO_H
 
 #include "sys-registers/mmio_base.h"
+#include "sys-registers/gpio.h"
 
-// Define the MMIO addresses for the GPIO pins
-#define GPFSEL1         (MMIO_BASE+0x00200004)
-#define GPSET0          (MMIO_BASE+0x0020001C)
-#define GPCLR0          (MMIO_BASE+0x00200028)
-#define GPPUD           (MMIO_BASE+0x00200094)
-#define GPPUDCLK0       (MMIO_BASE+0x00200098)
 
 // Spins the CPU for the number of clock cycles specified in the parameter
 // This must be implemented in assembly itself to avoid the compiler optimizing 
