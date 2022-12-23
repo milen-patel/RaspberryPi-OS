@@ -7,4 +7,7 @@ void handle_irq();
 
 // Initialize the RPi interrupt request handler device
 void init_rpi_interrupt_handler();
+
+#define PRIMARY_TIMER_IRQ (1 << 1)
+#define SECONDARY_TIMER_IRQ (1 << 3)
 #endif

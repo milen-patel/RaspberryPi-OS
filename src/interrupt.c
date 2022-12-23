@@ -23,17 +23,21 @@ void show_unknown_interrupt_msg(int index, unsigned long cause, unsigned long ad
 void handle_irq() {
     printf("[time=%d] IRQ Recieved\n", get32(TIMER_CLO));
     unsigned int irq = get32(IRQ_PENDING_1);
-    switch (irq) {
-        case ((1 << 1)):
+        if (irq & PRIMARY_TIMER_IRQ) {
             handle_timer_irq();
-            break;
-        default:
+            return;
+        }
+        if (irq & SECONDARY_TIMER_IRQ) {
+            printf("Secondary Timer Interrupt Recieved, This can be used in the future\n");
+            put32(TIMER_CS, SECONDARY_TIMER_IRQ);
+            return;
+        }
             printf("Unknown pending irq: %d\n", irq);
-    }
     return;
 }
 
-// Enables System Timer #1 IRQ
+// Enables System Timer #1 and #3 IRQ
+// #2 and #4 are reserved for the GPU (see https://embedded-xinu.readthedocs.io/en/latest/arm/rpi/BCM2835-System-Timer.html)
 void init_rpi_interrupt_handler() {
-    put32(IRQ_ER_1, 0x2);
+    put32(IRQ_ER_1, (1 << 1) | (1 << 3));
 }

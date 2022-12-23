@@ -1,6 +1,7 @@
 #include "timer/timer.h"
 #include "mmio.h"
 #include "sys-registers/timer.h"
+#include "interrupts/interrupt.h"
 #include "printf.h"
 
 // Determines the frequency of timer interrupts
@@ -13,7 +14,10 @@ void init_timer() {
     curVal += interval;
 
     printf("Expect Next Timer Interrupt at: %d\n", curVal);
-    put32(TIMER_C1, curVal); // TODO why c1
+    put32(TIMER_C1, curVal); 
+
+    // Set the secondary timer to go off once as sake of illustration
+    put32(TIMER_C3, curVal + 8);
 }
 
 void handle_timer_irq() {
@@ -28,5 +32,5 @@ void handle_timer_irq() {
     // If you didnt include this, then as soon as the handler returns
     // the interrupt would get called again and you would end up back here
     // since the timer doesn't know that you have already handled it.
-    put32(TIMER_CS, (1<<1)); // TODO why this one
+    put32(TIMER_CS, PRIMARY_TIMER_IRQ); 
 }
