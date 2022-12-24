@@ -16,4 +16,7 @@
     bss_begin = .;
     .bss : { *(.bss*) } 
     bss_end = .;
+    . = ALIGN(0x1000);
+    .cpuakernelstack = 0x401000;
+    __paging_start = 0x401000;
 }

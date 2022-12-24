@@ -9,7 +9,7 @@ Building an Operating System for the RPI From Scratch!
 5. Implement printf
 6. Set up Interrupt Vector Table
 7. Enable Raspberry Pi Hardware Timer and Configure for interrupts
-
+8. Wrangle open RAM Space into 4kb Pages, create functions for reserving/freeing pages
 
 # Running Tasks
 * Figure out why uart_recv and uart_send can't have their while loops optimized

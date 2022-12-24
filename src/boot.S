@@ -26,7 +26,8 @@ _start:
 	b proc_hang
 
 cpu2:
-	mov sp, #START_OF_KERNEL_STACK_CPU2
+	mov sp, #START_OF_KERNEL_STACK
+	add sp, sp, #4096
 	bl kmain2
 
 
