@@ -6,8 +6,18 @@
 #include "interrupts/toggle.h"
 #include "mmio.h"
 #include "sys-registers/timer.h"
+#include <stdbool.h>
 
 // Once boot.S finishes setting up the C runtime environment, it will defer execution to kmain
+bool shouldSecondCPUStart = false;
+void kmain2() {
+  while (!shouldSecondCPUStart);
+  while (1) {
+    printf("CPU 22222222222222222222222222222222222222\n");
+    delay(100);
+  }
+
+}
 void kmain(void) {
   uart_init();
   printf("===============================================================================\n");
@@ -27,6 +37,11 @@ void kmain(void) {
   printf("[time = %d] Interrupt Requests Have Been Enabled\n", get32(TIMER_CLO));
   printf("===============================================================================\n");
 
+  shouldSecondCPUStart = true;
+  while (1) {
+    printf("CPU 11111111111111111111111111111111111111\n");
+    delay(100);
+  }
   while (1) {
     char c = uart_recv();
     printf("[time=%d]%c\n", get32(TIMER_CLO), c);

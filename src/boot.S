@@ -19,9 +19,16 @@ _start:
 
 	// Only CPU0 should continue
 	cbz x0, init_exception_level
+	sub x0, x0, #1
+	cbz x0, cpu2
 
 	// If you make it here, you are not CPU0, so go into an infinite loop
 	b proc_hang
+
+cpu2:
+	mov sp, #START_OF_KERNEL_STACK_CPU2
+	bl kmain2
+
 
 .global proc_hang
 proc_hang:
