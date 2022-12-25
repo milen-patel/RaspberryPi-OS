@@ -60,11 +60,13 @@ One of the most difficult things to understand in the kernel is how we switch be
 NOTE: All of this logic for the past few function calls has been triggered from an interrupt but technically 
 the kernel is using A's stack for its variables so the stack looks like this
 
+```
 interrupt handler stack
 -----------------------
 process dumped register state
 -----------------------
 process stack up to the interrupt
+```
 
 
 9. switch_to() updates the prev and curr tasks variables
@@ -89,11 +91,13 @@ Suppose the scheduler then wants to return to A.
 
 We then have B's stack looking like this:
 
+```
 interrupt handler stack for B
 -----------------------
 process dumped register state of B
 -----------------------
 process stack up to the interrupt of B
+```
 
 And now its kind of in the exact same position that A was in. Okay so then what happens when we swap back to A?
 
@@ -109,5 +113,4 @@ And now its kind of in the exact same position that A was in. Okay so then what 
 8. handle_irq() returns
 9. we are back in assembly...we restore the OG A registers that we initally pushed onto the stack
 10. we return finally execution to A and it continues as expected
-	In this s  
 
