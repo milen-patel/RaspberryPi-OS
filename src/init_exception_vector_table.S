@@ -19,9 +19,17 @@
     STP x26, x27, [sp, #-16]!
     STP x28, x29, [sp, #-16]!
     STP x29, x30, [sp, #-16]!
+
+    mrs	x22, elr_el1
+	mrs	x23, spsr_el1
+    STP x22, x23, [sp, #-16]!
 .endm
 
 .macro restore_kernel_state_from_stack_and_exit
+    LDP x22, x23, [sp], #16
+    msr	elr_el1, x22			
+	msr	spsr_el1, x23
+
     LDP x29, x30, [sp], #16 // Special case, sp must always be 16 bit aligned so we have to deal with this 
     LDP x28, x29, [sp], #16
     LDP x26, x27, [sp], #16

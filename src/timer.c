@@ -3,9 +3,10 @@
 #include "sys-registers/timer.h"
 #include "interrupts/interrupt.h"
 #include "printf.h"
+#include "process/schedule.h"
 
 // Determines the frequency of timer interrupts
-const unsigned int interval = 200000 * 15;
+const unsigned int interval = 200000;
 unsigned int curVal = 0;
 
 void init_timer() {
@@ -33,4 +34,7 @@ void handle_timer_irq() {
     // the interrupt would get called again and you would end up back here
     // since the timer doesn't know that you have already handled it.
     put32(TIMER_CS, PRIMARY_TIMER_IRQ); 
+
+
+    timer_tick();
 }

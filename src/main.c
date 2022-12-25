@@ -7,6 +7,8 @@
 #include "mmio.h"
 #include "sys-registers/timer.h"
 #include "paging/alloc.h"
+#include "process/fork.h"
+#include "process/pcb.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -16,6 +18,19 @@ void kmain2() {
   while (!shouldSecondCPUStart);
   //char c = 'x';
   //printf("CPU 2 Kernel Stack Local Variable Address: %p\n", &c);
+}
+
+void loop(char *arr) {
+  unsigned long curr = 0;
+  while (1) {
+    curr++;
+    if (curr % 10000 == 0) {
+      printf("Process %s is at value %d\n", arr, curr);
+    }
+    if (arr[4] == 'a' && curr == 100000) {
+      if(!fork(loop, "PROCc")) printf("Failed to fork!\n"); 
+    }
+  }
 }
 
 void kmain(void) {
@@ -40,19 +55,18 @@ void kmain(void) {
   printf("[time = %d] Paging has been initialized\n", get32(TIMER_CLO));
   printf("===============================================================================\n");
 
+  // Create two new runnable kthreads 
+  if(!fork(loop, "PROCa")) printf("Failed to fork!\n");
+  if(!fork(loop, "PROCb")) printf("Failed to fork!\n");
+
   shouldSecondCPUStart = true;
   delay(10000);
 
-  void *a = alloc_page();
-  void *b = alloc_page();
-  void *c = alloc_page();
-  free_page(b);
-  b = alloc_page();
-  free_page(a);
-  free_page(b);
-  free_page(c);
   while (1) {
-    char c = uart_recv();
-    printf("[time=%d]%c\n", get32(TIMER_CLO), c);
+    //char c = uart_recv();
+    //printf("[time=%d]%c\n", get32(TIMER_CLO), c);
+    // Main thread has nothing to do, so yield to the other functions we have
+    printf("INIT task has control, calling schedule()\n");
+    schedule();
 	}
 }
