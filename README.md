@@ -10,6 +10,7 @@ Building an Operating System for the RPI From Scratch!
 6. Set up Interrupt Vector Table
 7. Enable Raspberry Pi Hardware Timer and Configure for interrupts
 8. Wrangle open RAM Space into 4kb Pages, create functions for reserving/freeing pages
+9. Ability to create kernel threads
 
 # Running Tasks
 * Figure out why uart_recv and uart_send can't have their while loops optimized
@@ -39,3 +40,74 @@ Note that the CURRENTEL register is a read-only register, so you cannot directly
 The CURRENTEL register is encoded as a 2-bit field, which means that it is necessary to shift the value right by two bits in order to extract the EL value.
 
 You can read further into this here: https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/CurrentEL--Current-Exception-Level
+
+## Context Switching
+One of the most difficult things to understand in the kernel is how we switch between two processes. The following section gives some explanation that you may find useful as you read through the code
+
+1. Timer Interrupt happens
+2. All of the general purpose registers are dumped onto the stack 
+	(https://github.com/s-matyukevich/raspberry-pi-os/blob/master/src/lesson04/src/entry.S)
+3. Assembly calls handle_irq
+4. handle_irq sees that the IRQ came from the system timer and calls handle_timer_irq
+5. Handle_timer_irq sets up the clock for the next interrupt and then calls timer_tick
+	It also acknowledges the interrupt has been handled so the next one can come in
+6. Timer tick determines if the current process should keep running
+	YES - it returns - all of the functions return - OG registers popped from stack and execution resumes
+	NO - schedule() is called
+7. schedule() determines the next thread to run
+8. Schedule calls switch_to()
+	
+NOTE: All of this logic for the past few function calls has been triggered from an interrupt but technically 
+the kernel is using A's stack for its variables so the stack looks like this
+
+interrupt handler stack
+-----------------------
+process dumped register state
+-----------------------
+process stack up to the interrupt
+
+
+9. switch_to() updates the prev and curr tasks variables
+10. switch_to() calls cpu_switch_to(old process, new process)
+11. cpu_switch_to stores all of the x19-x30 registers into the old processes PCB entry 
+	This includes the stack pointer and return function address
+	TODO make sure you know why not x0-x18
+12. cpu_switch_to takes all the registers from the new processes PCB and puts them into the actual registers
+13. cpu_switch_to executes the ret instruction 
+
+Now this means that we are fully executing B (assuming we swapped from A to B)
+
+A is in this somewhat odd state since it has a lot more info on its stack than at the moment it was interrupted
+
+
+
+NOW, suppose b runs for a while and then it gets an interrupt, the same set of steps happens again
+
+That is: B's registers are dumped onto its stack, the schedular gets called
+If the scheduler chooses to run B again, its the not-so-interesting case.
+Suppose the scheduler then wants to return to A.
+
+We then have B's stack looking like this:
+
+interrupt handler stack for B
+-----------------------
+process dumped register state of B
+-----------------------
+process stack up to the interrupt of B
+
+And now its kind of in the exact same position that A was in. Okay so then what happens when we swap back to A?
+
+1. cpu_switch_to restores A's registers back from the PCB entry 
+	These aren't the A registers from the programs execution but what they were from the interrupt handler
+2. cpu_switch_to executes the `ret` which contains the address of switch_to() since switch_to() called cpu_switch_to()
+3. Execution is back in switch_to() but there is no more instruction so we return from switch_to
+	Notice how the stack is decreasing getting closer back to the original A stack
+4. switch_to() returns and now we are back in schedule()
+5. schedule() returns since there is nothing else left to do
+6. timer_tick() disables IRQS (TODO when are they reenabled) and returns
+7. handle_timer_irq() returns
+8. handle_irq() returns
+9. we are back in assembly...we restore the OG A registers that we initally pushed onto the stack
+10. we return finally execution to A and it continues as expected
+	In this s  
+
