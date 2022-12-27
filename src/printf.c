@@ -17,7 +17,7 @@ void print_digits(int64_t n) {
 }
 
 // See: https://publications.gbdirect.co.uk//c_book/chapter9/stdarg.html (For handling an unknown number of variables)
-void printf(char *str, ...) {
+void kprintf(char *str, ...) {
     va_list ap;
     va_start(ap, str);
 
@@ -56,16 +56,16 @@ void printf(char *str, ...) {
 }
 
 void test_printf() {
-  printf("Simple String\n");
-  printf("This is a digit: %d\n", 5);
-  printf("This is two digits: %d and %d\n", 6, 7);
-  printf("This is a negative digit: %d\n", -6);
-  printf("This is a wide digit:%d\n", 123456789);
-  printf("This is a char: %c and this is a digit: %d\n", 'c', 34);
-  printf("This is a string: %s\n", "...sample string...");
+  kprintf("Simple String\n");
+  kprintf("This is a digit: %d\n", 5);
+  kprintf("This is two digits: %d and %d\n", 6, 7);
+  kprintf("This is a negative digit: %d\n", -6);
+  kprintf("This is a wide digit:%d\n", 123456789);
+  kprintf("This is a char: %c and this is a digit: %d\n", 'c', 34);
+  kprintf("This is a string: %s\n", "...sample string...");
 
   int a = 4;
   int b = 5;
-  printf("&a=%p\n&b=%p\n", &a, &b);
-  printf("Debug Line...\n");
+  kprintf("&a=%p\n&b=%p\n", &a, &b);
+  kprintf("Debug Line...\n");
 }

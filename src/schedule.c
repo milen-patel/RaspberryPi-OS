@@ -1,7 +1,7 @@
 #include "process/pcb.h"
 #include "process/schedule.h"
 #include "interrupts/toggle.h"
-#include "printf.h"
+#include "kprintf.h"
 #include <stdbool.h>
 
 struct task_struct init_task = {{0,0,0,0,0,0,0,0,0,0,0,0,0}, 0,0,1, 0 };
@@ -48,7 +48,7 @@ void schedule() {
         }
     }
     if (allTasksEmpty) {
-        printf("Scheduler detects that all time slices are empty....\n");
+        kprintf("Scheduler detects that all time slices are empty....\n");
         // Reset time slices
         for (int i = 0; i < num_running_tasks; i++) {
             all_tasks[i]->counter = all_tasks[i]->priority;
@@ -60,7 +60,7 @@ void schedule() {
     for (int i = 1; i < num_running_tasks; ++i) {
         if (all_tasks[i]->counter > all_tasks[maxIdx]->counter) maxIdx = i;
     }
-    printf("Schedule has decided on running task %d\n", maxIdx);
+    kprintf("Schedule has decided on running task %d\n", maxIdx);
     switch_to(all_tasks[maxIdx]);
     enable_preemption();
 }

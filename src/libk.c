@@ -2,6 +2,7 @@
 #include "paging/alloc.h"
 #include "paging/paging.h"
 #include "libk/assert.h"
+#include "kprintf.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,14 +21,14 @@
 
 void assert(bool cond) {
     if (!(cond)) {
-        printf("Bad assertion!\n");
+        kprintf("Bad assertion!\n");
         __asm__ __volatile__ ("b proc_hang");
     }
 }
 
 void assertWithLine(bool cond, int line) {
     if (!(cond)) {
-        printf("Bad assertion from line %d\n!", line);
+        kprintf("Bad assertion from line %d\n!", line);
         __asm__ __volatile__ ("b proc_hang");
     }
 }
@@ -144,7 +145,7 @@ struct superblock_bookkeeping * alloc_super (int power) {
 
     // Handle bad result from mmap()
     if (page == 0x0) {
-        printf("Internel Error in KMalloc()");
+        kprintf("Internel Error in KMalloc()");
         assert(page);
     }
 
@@ -201,7 +202,7 @@ void *kmalloc(size_t size) {
 
     // Handle bigger allocations with mmap, and a simple list
     if (size > MAX_ALLOC) {
-        printf("Cannot alloc with a size this large!\n");
+        kprintf("Cannot alloc with a size this large!\n");
         return 0x0;
     }
 
@@ -241,7 +242,7 @@ void *kmalloc(size_t size) {
 
     // assert that rv doesn't end up being NULL at this point
     if (rv == NULL) {
-        printf("Something went wrong with kmalloc!\n");
+        kprintf("Something went wrong with kmalloc!\n");
         assert(rv != NULL);
     }
 
@@ -318,7 +319,7 @@ void kmalloc_test() {
         void *new = kmalloc(64);
         if (i == 0) prev = new+64;
         if (prev - new != 64) 
-            printf("There should have been a call to alloc_page()");
+            kprintf("There should have been a call to alloc_page()");
         prev = new;
     }
 

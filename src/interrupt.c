@@ -2,7 +2,7 @@
 #include "sys-registers/interrupt.h"
 #include "timer/timer.h"
 #include "sys-registers/timer.h"
-#include "printf.h"
+#include "kprintf.h"
 #include "mmio.h"
 
 /*
@@ -12,7 +12,7 @@
  * This function will be the last thing the kernel executes as it will hang after return.
  */
 void show_unknown_interrupt_msg(int index, unsigned long cause, unsigned long address) {
-    printf("Unexpected Interrupt! Index %d, Cause %d, Address %d\n", index, cause, address);
+    kprintf("Unexpected Interrupt! Index %d, Cause %d, Address %d\n", index, cause, address);
 }
 
 /*
@@ -21,18 +21,18 @@ void show_unknown_interrupt_msg(int index, unsigned long cause, unsigned long ad
  * of the exception and handle it accordingly
  */
 void handle_irq() {
-    printf("[time=%d] IRQ Recieved\n", get32(TIMER_CLO));
+    kprintf("[time=%d] IRQ Recieved\n", get32(TIMER_CLO));
     unsigned int irq = get32(IRQ_PENDING_1);
         if (irq & PRIMARY_TIMER_IRQ) {
             handle_timer_irq();
             return;
         }
         if (irq & SECONDARY_TIMER_IRQ) {
-            printf("Secondary Timer Interrupt Recieved, This can be used in the future\n");
+            kprintf("Secondary Timer Interrupt Recieved, This can be used in the future\n");
             put32(TIMER_CS, SECONDARY_TIMER_IRQ);
             return;
         }
-            printf("Unknown pending irq: %d\n", irq);
+            kprintf("Unknown pending irq: %d\n", irq);
     return;
 }
 
