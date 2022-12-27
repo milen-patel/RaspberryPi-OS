@@ -9,6 +9,7 @@
 #include "paging/alloc.h"
 #include "process/fork.h"
 #include "process/pcb.h"
+#include "libk/malloc.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -42,9 +43,6 @@ void kmain(void) {
   init_interrupt_request_table();
   printf("[time = %d] Interrupt Request Table has been set up\n", get32(TIMER_CLO));
 
-  init_timer();
-  printf("[time = %d] Raspberry Pi Hardware Timer Has been set up\n", get32(TIMER_CLO));
-
   init_rpi_interrupt_handler();
   printf("[time = %d] Raspberry Pi interrupt controller has been configured \n", get32(TIMER_CLO));
 
@@ -53,7 +51,14 @@ void kmain(void) {
 
   init_paging();
   printf("[time = %d] Paging has been initialized\n", get32(TIMER_CLO));
+
+  kmalloc_test();
+  printf("[time = %d] kmalloc() appears to be working as expected\n", get32(TIMER_CLO));
+
+  init_timer();
+  printf("[time = %d] Raspberry Pi Hardware Timer Has been set up\n", get32(TIMER_CLO));
   printf("===============================================================================\n");
+
 
   // Create two new runnable kthreads 
   if(!fork(loop, "PROCa")) printf("Failed to fork!\n");
