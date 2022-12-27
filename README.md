@@ -11,6 +11,7 @@ Building an Operating System for the RPI From Scratch!
 7. Enable Raspberry Pi Hardware Timer and Configure for interrupts
 8. Wrangle open RAM Space into 4kb Pages, create functions for reserving/freeing pages
 9. Ability to create kernel threads
+10. Implement a memory manager for the kernel (kmalloc/kree)
 
 # Running Tasks
 * Figure out why uart_recv and uart_send can't have their while loops optimized
