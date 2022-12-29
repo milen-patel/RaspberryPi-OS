@@ -5,7 +5,7 @@
 
 #define SYSCALL_INDEX_PRINT         0
 #define SYSCALL_INDEX_MMAP          1
-#define SYSCALL_INDEX_FORK          2
-#define SYSCALL_INDEX_EXIT          3
+#define SYSCALL_INDEX_EXIT          2
+#define SYSCALL_INDEX_PFORK         3
 
 #endif

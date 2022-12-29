@@ -1,8 +1,4 @@
-.global ret_from_fork
-ret_from_fork:
-    bl    enable_preemption
-    mov    x0, x20
-    blr    x19         //should never return
+
 
 
 // Gets called from schedule()

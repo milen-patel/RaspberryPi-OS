@@ -66,6 +66,9 @@ struct task_struct {
     // Thus, when a program is doing something important, it should increment this value (i.e. call preempt_enable) and when it is done decrement it (call preempt_disable)
     // When a timer interrupt happens, we end up in timer_tick, if it sees the value is non-zero it returns which means the same process is scheduled again!
     long preempt_count;
+
+    void *stack;
+    int flags;
 };
 
 // Used by a program to ensure it is not scheduled over while executing something important

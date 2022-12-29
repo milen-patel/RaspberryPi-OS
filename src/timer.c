@@ -6,7 +6,7 @@
 #include "process/schedule.h"
 
 // Determines the frequency of timer interrupts
-const unsigned int interval = 200000;
+const unsigned int interval = 2*2000000;
 unsigned int curVal = 0;
 
 void init_timer() {
@@ -18,7 +18,7 @@ void init_timer() {
     put32(TIMER_C1, curVal); 
 
     // Set the secondary timer to go off once as sake of illustration
-    put32(TIMER_C3, curVal + 8);
+    // put32(TIMER_C3, curVal + 8);
 }
 
 void handle_timer_irq() {
