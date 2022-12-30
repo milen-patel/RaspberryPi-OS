@@ -3,6 +3,7 @@
 #include "sys-registers/timer.h"
 #include "interrupts/interrupt.h"
 #include "libk/printf.h"
+#include "libk/memcpy.h"
 #include "process/pcb.h"
 
 // Determines the frequency of timer interrupts
@@ -21,6 +22,9 @@ void init_timer() {
     // put32(TIMER_C3, curVal + 8);
 }
 
+// Needed to be able to reference the variable defined in schedule.c
+extern struct pcb *currProc;
+
 void handle_timer_irq() {
     // Set the time of the next interrupt
     curVal += interval;
@@ -36,5 +40,16 @@ void handle_timer_irq() {
     put32(TIMER_CS, PRIMARY_TIMER_IRQ); 
 
     // Choose the next process to run and swap to it
+    kprintf("======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n");
+    char * base = (char *) 4210688;
+    for (int i = 0; i <= 30; ++i)
+        kprintf("x%d=%d\n", i, *(base + 16*i));
+    kprintf("ELR_EL1=%d\nSPSR_EL1=%d\n", *(base + 31*16), *(base + 32*16));
+
+    memcpy(base, currProc, sizeof(uint64_t) * 33);
+    kprintf("x0=%d,x5=%d,x30=%d,elr=%d,spsr=%d\n", currProc->registers.x0, currProc->registers.x5, currProc->registers.program_counter, currProc->registers.exception_link_register, currProc->registers.saved_program_status_register);
+    // Save it into the PCB of the currently running process
+    
+    kprintf("======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n");
     schedule();
 }

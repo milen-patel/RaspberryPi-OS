@@ -53,6 +53,12 @@ void kmain(void) {
   //shouldSecondCPUStart = true;
   //delay(10000);
 
+  char *context_switching_mem = (char *) alloc_page();
+  kprintf("Address for context switching space: %p\n", context_switching_mem);
+  for (int i = 0; i < 2048; i++) {
+    *(context_switching_mem + i) = i;
+  }
+
   new_kernel_thread(simple_spin_function, "A");
   new_kernel_thread(simple_spin_function, "B");
 
