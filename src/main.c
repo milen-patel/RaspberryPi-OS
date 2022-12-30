@@ -43,16 +43,8 @@ void kmain(void) {
   shouldSecondCPUStart = true;
   delay(10000);
 
-  void *a = alloc_page();
-  void *b = alloc_page();
-  void *c = alloc_page();
-  free_page(b);
-  b = alloc_page();
-  free_page(a);
-  free_page(b);
-  free_page(c);
+  int i = 0;
   while (1) {
-    char c = uart_recv();
-    kprintf("[time=%d]%c\n", get32(TIMER_CLO), c);
+    kprintf("[time=%d] i=%d\n", get32(TIMER_CLO), i++);
 	}
 }

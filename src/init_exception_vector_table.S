@@ -23,16 +23,16 @@
 
     # Push the system registers for the exception onto the stack
     # TODO need to handle ELR_ERX
-    MRS x0, ELR_EL1
-    MRS x1, SPSR_EL1
-    STP x0, x1, [sp, #-16]
+    # MRS x0, ELR_EL1
+    # MRS x1, SPSR_EL1
+    # STP x0, x1, [sp, #-16]
 .endm
 
 .macro restore_kernel_state_from_stack_and_exit
     # Pop the system state off of the stack and restore to the correct system registers
-    LDP x0, x1, [sp], #16
-    MSR ELR_EL1, x0
-    MSR SPSR_EL1, x0
+    # LDP x0, x1, [sp], #16
+    # MSR ELR_EL1, x0
+    # MSR SPSR_EL1, x1
 
     # Now, pop the general purpose registers (i.e. the ones that the running program was using)
     LDP x29, x30, [sp], #16 

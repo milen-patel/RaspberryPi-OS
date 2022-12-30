@@ -6,7 +6,7 @@
 
 // Determines the frequency of timer interrupts
 const unsigned int interval = 200000 * 15;
-unsigned int curVal = 0;
+unsigned long curVal = 0;
 
 void init_timer() {
     // Set the time of the next interrupt
@@ -17,7 +17,7 @@ void init_timer() {
     put32(TIMER_C1, curVal); 
 
     // Set the secondary timer to go off once as sake of illustration
-    put32(TIMER_C3, curVal + 8);
+    // put32(TIMER_C3, curVal + 8);
 }
 
 void handle_timer_irq() {
