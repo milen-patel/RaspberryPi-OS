@@ -25,6 +25,23 @@ void simple_spin_function() {
   }
 }
 
+bool isPrime(int n)
+{
+    // since 0 and 1 is not prime return false.
+    if (n == 1 || n == 0)
+        return false;
+  
+    // Run a loop from 2 to n-1
+    for (int i = 2; i < n; i++) {
+        // if the number is divisible by i, then n is not a
+        // prime number.
+        if (n % i == 0)
+            return false;
+    }
+    // otherwise, n is prime number.
+    return true;
+}
+
 void kmain(void) {
   uart_init();
   kprintf("===============================================================================\n");
@@ -62,7 +79,15 @@ void kmain(void) {
   new_kernel_thread(simple_spin_function, "A");
   new_kernel_thread(simple_spin_function, "B");
 
-  while (1) {
-    kprintf("[time=%d] c=%c\n", get32(TIMER_CLO), uart_recv());
-	}
+  //while (1) {
+  //  kprintf("[time=%d] c=%c\n", get32(TIMER_CLO), uart_recv());
+	//}
+  for (int i = 10; i > 0; i++) {
+    if (isPrime(i)) {
+      kprintf(
+        "%d\n",
+        i
+      );
+    }
+  }
 }

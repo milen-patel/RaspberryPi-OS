@@ -51,7 +51,6 @@
      MOV x3, #30
      MOV x4, #16
      MUL x2, x3, x4
-
      ADD x1, x1, x2
 
      MRS x3, ELR_EL1
@@ -63,27 +62,58 @@
 .endm
 
 .macro restore_kernel_state_from_stack_and_exit
-    # Pop the system state off of the stack and restore to the correct system registers
-    # LDP x0, x1, [sp], #16
-    # MSR ELR_EL1, x0
-    # MSR SPSR_EL1, x1
+    # Load the base address back into x1, the deal is that schedule should have updated all the values here for the next process to run
+    mov x1, #0x4040
+    lsl x1, x1, #8
 
-    LDP x29, x30, [sp], #16 // Special case, sp must always be 16 bit aligned so we have to deal with this 
-    LDP x28, x29, [sp], #16
-    LDP x26, x27, [sp], #16
-    LDP x24, x25, [sp], #16
-    LDP x22, x23, [sp], #16
-    LDP x20, x21, [sp], #16
-    LDP x18, x19, [sp], #16
-    LDP x16, x17, [sp], #16
-    LDP x14, x15, [sp], #16
-    LDP x12, x13, [sp], #16
-    LDP x10, x11, [sp], #16
-    LDP x8, x9, [sp], #16
-    LDP x6, x7, [sp], #16
-    LDP x4, x5, [sp], #16
-    LDP x2, x3, [sp], #16
-    LDP x0, x1, [sp], #16
+    # Start by loading the system registers
+    MOV x3, #30
+    MOV x4, #16
+    MUL x2, x3, x4
+    ADD x1, x1, x2
+    LDR x3, [x1, #16 * 1]
+    LDR x4, [x1, #16 * 2]
+    MSR ELR_EL1, x3
+    MSR SPSR_EL1, x4
+
+     # Now load the general registers
+    mov x1, #0x4040
+    lsl x1, x1, #8
+    LDR x0, [x1, #0 * 16]
+    # == We Intentionally Skip x1 since we are using that to hold the read address ==
+    LDR x2, [x1, #2 * 16]
+    LDR x3, [x1, #3 * 16]
+    LDR x4, [x1, #4 * 16]
+    LDR x5, [x1, #5 * 16]
+    LDR x6, [x1, #6 * 16]
+    LDR x7, [x1, #7 * 16]
+    LDR x8, [x1, #8 * 16]
+    LDR x9, [x1, #9 * 16]
+    LDR x10, [x1, #10 * 16]
+    LDR x11, [x1, #11 * 16]
+    LDR x12, [x1, #12 * 16]
+    LDR x13, [x1, #13 * 16]
+    LDR x14, [x1, #14 * 16]
+    LDR x15, [x1, #15 * 16]
+    LDR x16, [x1, #16 * 16]
+    LDR x17, [x1, #17 * 16]
+    LDR x18, [x1, #18 * 16]
+    LDR x19, [x1, #19 * 16]
+    LDR x20, [x1, #20 * 16]
+    LDR x21, [x1, #21 * 16]
+    LDR x22, [x1, #22 * 16]
+    LDR x23, [x1, #23 * 16]
+    LDR x24, [x1, #24 * 16]
+    LDR x25, [x1, #25 * 16]
+    LDR x26, [x1, #26 * 16]
+    LDR x27, [x1, #27 * 16]
+    LDR x28, [x1, #28 * 16]
+    LDR x29, [x1, #29 * 16]
+    LDR x30, [x1, #30 * 16]
+    # Now load x1
+    LDR x1, [x1, #1 * 16]
+
+    # Now that we have restored register state, return to exactly where we left off before the interrupt happened
     eret
 .endm
 
