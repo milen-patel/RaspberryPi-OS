@@ -3,36 +3,20 @@
 // push all of the EL0 registers onto the kernel stack so we dont mess up while handling interrupts
 // See for why we cant just push: https://stackoverflow.com/questions/27941220/push-lr-and-pop-lr-in-arm-arch64
 .macro push_kernel_state_onto_stack
-     STP x0, x1, [sp, #-16]!
-     STP x2, x3, [sp, #-16]!
-     STP x4, x5, [sp, #-16]!
-     STP x6, x7, [sp, #-16]!
-     STP x8, x9, [sp, #-16]!
-     STP x10, x11, [sp, #-16]!
-     STP x12, x13, [sp, #-16]!
-     STP x14, x15, [sp, #-16]!
-     STP x16, x17, [sp, #-16]!
-     STP x18, x19, [sp, #-16]!
-     STP x20, x21, [sp, #-16]!
-     STP x22, x23, [sp, #-16]!
-     STP x24, x25, [sp, #-16]!
-     STP x26, x27, [sp, #-16]!
-     STP x28, x29, [sp, #-16]!
-     STP x29, x30, [sp, #-16]!
-
-    # Push the system registers for the exception onto the stack
-    # TODO need to handle ELR_ERX
-    # MRS x0, ELR_EL1
-    # MRS x1, SPSR_EL1
-    # STP x0, x1, [sp, #-16]!
-
     # Now store all this information in a particular spot in memory
-    # MOVZ X1, #0x4040   // Load the upper 16 bits of the constant
-    # MOVK X1, #0x0000, LSL #16   // Load the lower 16 bits of the constant
+
+    # Store x1 onto the stack and then load the base address of where we want to store regstate into memory to x1
+    STR x1, [sp, #-16]!
     mov x1, #0x4040
     lsl x1, x1, #8
 
-     # Reserved for x1
+     # Now push x0
+     STR x0, [x1, #0 * 16] 
+
+     # Now we have x0's value saved, we can pop x1 off the stack into x0 and store that into memory
+     LDR x0, [sp], #16
+     STR x0, [x1, #1 * 16] 
+
      STR x2, [x1, #2 * 16]
      STR x3, [x1, #3 * 16]
      STR x4, [x1, #4 * 16]
