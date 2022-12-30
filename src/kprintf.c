@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // Prints a digit as a string
-void print_digits(int64_t n) {
+void print_digits(uint64_t n) {
   if (n < 0) {
     uart_send('-');
     n = -n;

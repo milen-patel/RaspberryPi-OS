@@ -7,6 +7,7 @@ typedef struct {
     uint64_t x0;
     uint64_t x1;
     uint64_t x2;
+    uint64_t x3;
     uint64_t x4;
     uint64_t x5;
     uint64_t x6;
