@@ -3,6 +3,7 @@
 #include "sys-registers/timer.h"
 #include "interrupts/interrupt.h"
 #include "libk/printf.h"
+#include "process/pcb.h"
 
 // Determines the frequency of timer interrupts
 const unsigned int interval = 200000 * 15;
@@ -33,4 +34,7 @@ void handle_timer_irq() {
     // the interrupt would get called again and you would end up back here
     // since the timer doesn't know that you have already handled it.
     put32(TIMER_CS, PRIMARY_TIMER_IRQ); 
+
+    // Choose the next process to run and swap to it
+    schedule();
 }

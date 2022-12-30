@@ -7,6 +7,7 @@
 #include "mmio.h"
 #include "sys-registers/timer.h"
 #include "paging/alloc.h"
+#include "process/pcb.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -16,6 +17,12 @@ void kmain2() {
   while (!shouldSecondCPUStart);
   //char c = 'x';
   //printf("CPU 2 Kernel Stack Local Variable Address: %p\n", &c);
+}
+
+void simple_spin_function() {
+  while (1) {
+    kprintf("SPIN\n");
+  }
 }
 
 void kmain(void) {
@@ -38,13 +45,18 @@ void kmain(void) {
 
   init_paging();
   kprintf("[time = %d] Paging has been initialized\n", get32(TIMER_CLO));
+
+  init_scheduler();
+  kprintf("[time = %d] Scheduler has been initialized\n", get32(TIMER_CLO));
   kprintf("===============================================================================\n");
 
-  shouldSecondCPUStart = true;
-  delay(10000);
+  //shouldSecondCPUStart = true;
+  //delay(10000);
 
-  int i = 0;
+  new_kernel_thread(simple_spin_function, "A");
+  new_kernel_thread(simple_spin_function, "B");
+
   while (1) {
-    kprintf("[time=%d] i=%d\n", get32(TIMER_CLO), i++);
+    kprintf("[time=%d] c=%c\n", get32(TIMER_CLO), uart_recv());
 	}
 }
