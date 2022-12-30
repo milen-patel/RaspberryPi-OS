@@ -3,7 +3,6 @@
 // push all of the EL0 registers onto the kernel stack so we dont mess up while handling interrupts
 // See for why we cant just push: https://stackoverflow.com/questions/27941220/push-lr-and-pop-lr-in-arm-arch64
 .macro push_kernel_state_onto_stack
-    # Push the general purpose registers onto the stack
     STP x0, x1, [sp, #-16]!
     STP x2, x3, [sp, #-16]!
     STP x4, x5, [sp, #-16]!
@@ -23,20 +22,18 @@
 
     # Push the system registers for the exception onto the stack
     # TODO need to handle ELR_ERX
-    # MRS x0, ELR_EL1
-    # MRS x1, SPSR_EL1
-    # STP x0, x1, [sp, #-16]
+    MRS x0, ELR_EL1
+    MRS x1, SPSR_EL1
+    STP x0, x1, [sp, #-16]!
 .endm
 
 .macro restore_kernel_state_from_stack_and_exit
     # Pop the system state off of the stack and restore to the correct system registers
-    # LDP x0, x1, [sp], #16
-    # MSR ELR_EL1, x0
-    # MSR SPSR_EL1, x1
+    LDP x0, x1, [sp], #16
+    MSR ELR_EL1, x0
+    MSR SPSR_EL1, x1
 
-    # Now, pop the general purpose registers (i.e. the ones that the running program was using)
-    LDP x29, x30, [sp], #16 
-    LDP x29, x30, [sp], #16 
+    LDP x29, x30, [sp], #16 // Special case, sp must always be 16 bit aligned so we have to deal with this 
     LDP x28, x29, [sp], #16
     LDP x26, x27, [sp], #16
     LDP x24, x25, [sp], #16
@@ -97,7 +94,7 @@ exception_vector_list:
     handle_invalid_entry SYNCHRONOUS_EL1_SP_EL1
     
     .align 7 // (2^7 bytes per entry)
-    b el1_irq_handler
+    b handle_el1_irq
 
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry FIQ_EL1_SP_EL1
@@ -128,11 +125,9 @@ exception_vector_list:
     
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry SERROR_EL0_AARCH32
+    
 
-
-el1_irq_handler:
+handle_el1_irq:
     push_kernel_state_onto_stack
     bl handle_irq
     restore_kernel_state_from_stack_and_exit
-
-    
