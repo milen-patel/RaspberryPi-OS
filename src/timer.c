@@ -2,7 +2,7 @@
 #include "mmio.h"
 #include "sys-registers/timer.h"
 #include "interrupts/interrupt.h"
-#include "printf.h"
+#include "libk/printf.h"
 
 // Determines the frequency of timer interrupts
 const unsigned int interval = 200000 * 15;
@@ -13,7 +13,7 @@ void init_timer() {
     curVal = get32(TIMER_CLO);
     curVal += interval;
 
-    printf("Expect Next Timer Interrupt at: %d\n", curVal);
+    kprintf("Expect Next Timer Interrupt at: %d\n", curVal);
     put32(TIMER_C1, curVal); 
 
     // Set the secondary timer to go off once as sake of illustration
@@ -23,7 +23,7 @@ void init_timer() {
 void handle_timer_irq() {
     // Set the time of the next interrupt
     curVal += interval;
-    printf("Expect next timer interrupt at %d\n", curVal);
+    kprintf("Expect next timer interrupt at %d\n", curVal);
 
     // Inform the timer of when we want this next interrupt
     put32(TIMER_C1, curVal);

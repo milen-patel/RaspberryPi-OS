@@ -10,7 +10,7 @@
  *   strings (%s)
  *   pointers (%p)
  */
-void printf(char *s, ...);
+void kprintf(char *s, ...);
 
 /* 
  * Simple function that demonstrates example usage of printf to verify behaviour
