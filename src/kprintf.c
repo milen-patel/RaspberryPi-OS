@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // Prints a digit as a string
-void print_digits(uint64_t n) {
+void print_digits(long n) {
   if (n < 0) {
     uart_send('-');
     n = -n;
@@ -31,7 +31,7 @@ void kprintf(char *str, ...) {
         if (isNextSpecial) {
             isNextSpecial = false;
             if (*str == 'd') {
-                int val = va_arg(ap, int);
+                long val = va_arg(ap, long);
                 print_digits(val);
             } else if (*str == 'c') {
                 char c = (char) va_arg(ap, int);
