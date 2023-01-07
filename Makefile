@@ -11,7 +11,7 @@ all : clean kernel8.img
 
 clean :
 	rm -rf $(BUILD_DIR) *.img 
-	rm binary.txt
+	rm -f binary.txt
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
