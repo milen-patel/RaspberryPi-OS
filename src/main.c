@@ -19,27 +19,37 @@ void kmain2() {
   //printf("CPU 2 Kernel Stack Local Variable Address: %p\n", &c);
 }
 
-void simple_spin_function() {
+void spinAndInc () {
+  int i = 0;
+  kprintf("SP ~%p\n\n\n\n", &i);
   while (1) {
-    kprintf("SPIN\n");
+    i++;
+    kprintf("%d\n", i);
   }
 }
-
-bool isPrime(int n)
-{
-    // since 0 and 1 is not prime return false.
-    if (n == 1 || n == 0)
-        return false;
-  
-    // Run a loop from 2 to n-1
-    for (int i = 2; i < n; i++) {
-        // if the number is divisible by i, then n is not a
-        // prime number.
-        if (n % i == 0)
-            return false;
-    }
-    // otherwise, n is prime number.
-    return true;
+void spinAndInc2() {
+  int i = 0;
+  kprintf("SP ~%p\n\n\n\n", &i);
+  while (1) {
+    i++;
+    kprintf("\t\t%d\n", i);
+  }
+}
+void spinAndInc3() {
+  int i = 0;
+  kprintf("SP ~%p\n\n\n\n", &i);
+  while (1) {
+    i++;
+    kprintf("\t\t\t\t%d\n", i);
+  }
+}
+void spinAndInc4() {
+  int i = 0;
+  kprintf("SP ~%p\n\n\n\n", &i);
+  while (1) {
+    i++;
+    kprintf("\t\t\t\t\t\t%d\n", i);
+  }
 }
 
 void kmain(void) {
@@ -65,6 +75,8 @@ void kmain(void) {
 
   init_scheduler();
   kprintf("[time = %d] Scheduler has been initialized\n", get32(TIMER_CLO));
+  
+  kprintf("[time = %d] The kernel is operating in exception level %d\n", get32(TIMER_CLO), getExceptionLevel());
   kprintf("===============================================================================\n");
 
   //shouldSecondCPUStart = true;
@@ -76,18 +88,8 @@ void kmain(void) {
     *(context_switching_mem + i) = i;
   }
 
-  new_kernel_thread(simple_spin_function, "A");
-  new_kernel_thread(simple_spin_function, "B");
-
-  //while (1) {
-  //  kprintf("[time=%d] c=%c\n", get32(TIMER_CLO), uart_recv());
-	//}
-  for (int i = 10; i > 0; i++) {
-    if (isPrime(i)) {
-      kprintf(
-        "%d\n",
-        i
-      );
-    }
-  }
+  new_kernel_thread(spinAndInc2, "B");
+  new_kernel_thread(spinAndInc3, "B");
+  new_kernel_thread(spinAndInc4, "B");
+  spinAndInc();
 }

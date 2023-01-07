@@ -3,44 +3,45 @@
 
 #include <stdint.h>
 
-typedef struct {
-    uint64_t x0;
-    uint64_t x1;
-    uint64_t x2;
-    uint64_t x3;
-    uint64_t x4;
-    uint64_t x5;
-    uint64_t x6;
-    uint64_t x7;
-    uint64_t x8;
-    uint64_t x9;
-    uint64_t x10;
-    uint64_t x11;
-    uint64_t x12;
-    uint64_t x13;
-    uint64_t x14;
-    uint64_t x15;
-    uint64_t x16;
-    uint64_t x17;
-    uint64_t x18;
-    uint64_t x19;
-    uint64_t x20;
-    uint64_t x21;
-    uint64_t x22;
-    uint64_t x23;
-    uint64_t x24;
-    uint64_t x25;
-    uint64_t x26;
-    uint64_t x27;
-    uint64_t frame_pointer; //x28
-    uint64_t stack_pointer; //x29
-    uint64_t program_counter; //x30
-    uint64_t exception_link_register;
-    uint64_t saved_program_status_register;
-} register_state;
+struct register_state{
+    long x0;
+    long x1;
+    long x2;
+    long x3;
+    long x4;
+    long x5;
+    long x6;
+    long x7;
+    long x8;
+    long x9;
+    long x10;
+    long x11;
+    long x12;
+    long x13;
+    long x14;
+    long x15;
+    long x16;
+    long x17;
+    long x18;
+    long x19;
+    long x20;
+    long x21;
+    long x22;
+    long x23;
+    long x24;
+    long x25;
+    long x26;
+    long x27;
+    long x28;
+    long x29;
+    long x30;
+    long exception_link_register;
+    long saved_program_status_register;
+    long stack_pointer;
+};
 
 struct pcb {
-    register_state registers;
+    struct register_state registers;
     uint32_t pid;
     void *stack;
     uint8_t state;
@@ -61,5 +62,8 @@ struct pcb_list {
 
 void init_scheduler();
 void schedule();
+void schedule_dump_state();
 int new_kernel_thread(void *function, void *arg);
+void print_pcb_state(struct pcb *pcb);
+void terminate_interrupt();
 #endif
