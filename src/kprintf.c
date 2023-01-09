@@ -17,9 +17,8 @@ void print_digits(long n) {
 }
 
 // See: https://publications.gbdirect.co.uk//c_book/chapter9/stdarg.html (For handling an unknown number of variables)
-void kprintf(char *str, ...) {
-    va_list ap;
-    va_start(ap, str);
+
+void kwriter(char *str, va_list ap) {
 
     bool isNextSpecial = false;
     while (*str != '\0') {
@@ -53,6 +52,12 @@ void kprintf(char *str, ...) {
         str++;
     }
 
+}
+
+void kprintf(char *str, ...) {
+    va_list ap;
+    va_start(ap, str);
+    kwriter(str, ap);
 }
 
 void test_printf() {
