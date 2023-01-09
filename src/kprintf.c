@@ -1,4 +1,5 @@
 #include "libk/printf.h"
+#include "libk/log.h"
 #include "uart.h"
 #include <stdarg.h>
 #include <stdbool.h>
@@ -55,6 +56,13 @@ void kwriter(char *str, va_list ap) {
 }
 
 void kprintf(char *str, ...) {
+    va_list ap;
+    va_start(ap, str);
+    kwriter(str, ap);
+}
+
+void klog(char *str, ...) {
+    if (!LOGGING_ENABLED) return;
     va_list ap;
     va_start(ap, str);
     kwriter(str, ap);
