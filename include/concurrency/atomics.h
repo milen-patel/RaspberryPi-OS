@@ -1,5 +1,6 @@
 #ifndef _ATOMICS_H
 #define _ATOMICS_H
+#include <stdint.h>
 
 /*
  * This function takes a pointer to an int64_t value as its only parameter and 
