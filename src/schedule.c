@@ -142,8 +142,9 @@ void schedule_dump_state() {
     kprintf("Run Queue: ");
     struct pcb_list *l = runqueue;
     while (l) {
-        kprintf("%d->", l->pcb->pid);
+        kprintf("%d", l->pcb->pid);
         l = l->next;
+        if (l) kprintf("->");
     }
     kprintf("\n");
     l = runqueue;
@@ -156,42 +157,42 @@ void schedule_dump_state() {
 }
 
 void print_pcb_state(struct pcb *pcb) {
-   kprintf("{pid=%d|stack=%p|registers={x0=%d|x1=%d|x2=%d|x3=%d|x4=%d|x5=%d|x6=%d|x7=%d|x8=%d|x9=%d|x10=%d|x11=%d|x12=%d|x13=%d|x14=%d|x15=%d|x16=%d|x17=%d|x18=%d|x19=%d|x20=%d|x21=%d|x22=%d|x23=%d|x24=%d|x25=%d|x26=%d|x27=%d|x28=%d|x29=%d|x30=%d|elr=%d|spsr=%d|sp=%d}}\n", 
-   pcb->pid, 
-   pcb->stack,
-   pcb->registers.x0,
-   pcb->registers.x1,
-   pcb->registers.x2,
-   pcb->registers.x3,
-   pcb->registers.x4,
-   pcb->registers.x5,
-   pcb->registers.x6,
-   pcb->registers.x7,
-   pcb->registers.x8,
-   pcb->registers.x9,
-   pcb->registers.x10,
-   pcb->registers.x11,
-   pcb->registers.x12,
-   pcb->registers.x13,
-   pcb->registers.x14,
-   pcb->registers.x15,
-   pcb->registers.x16,
-   pcb->registers.x17,
-   pcb->registers.x18,
-   pcb->registers.x19,
-   pcb->registers.x20,
-   pcb->registers.x21,
-   pcb->registers.x22,
-   pcb->registers.x23,
-   pcb->registers.x24,
-   pcb->registers.x25,
-   pcb->registers.x26,
-   pcb->registers.x27,
-   pcb->registers.x28,
-   pcb->registers.x29,
-   pcb->registers.x30,
-   pcb->registers.exception_link_register,
-   pcb->registers.saved_program_status_register,
-   pcb->registers.stack_pointer
-   ); 
+    kprintf("{\n\tPID=%d\n", pcb->pid);
+    kprintf("\tStack Base=%p\n", pcb->stack);
+    kprintf("\tElapsed Time Slices=%d\n", pcb->numSlicesUsed);
+    kprintf("\tx0=%d\n", pcb->registers.x0);
+    kprintf("\tx1=%d\n", pcb->registers.x1);
+    kprintf("\tx2=%d\n", pcb->registers.x2);
+    kprintf("\tx3=%d\n", pcb->registers.x3);
+    kprintf("\tx4=%d\n", pcb->registers.x4);
+    kprintf("\tx5=%d\n", pcb->registers.x5);
+    kprintf("\tx6=%d\n", pcb->registers.x6);
+    kprintf("\tx7=%d\n", pcb->registers.x7);
+    kprintf("\tx8=%d\n", pcb->registers.x8);
+    kprintf("\tx9=%d\n", pcb->registers.x9);
+    kprintf("\tx10=%d\n", pcb->registers.x10);
+    kprintf("\tx11=%d\n", pcb->registers.x11);
+    kprintf("\tx12=%d\n", pcb->registers.x12);
+    kprintf("\tx13=%d\n", pcb->registers.x13);
+    kprintf("\tx14=%d\n", pcb->registers.x14);
+    kprintf("\tx15=%d\n", pcb->registers.x15);
+    kprintf("\tx16=%d\n", pcb->registers.x16);
+    kprintf("\tx17=%d\n", pcb->registers.x17);
+    kprintf("\tx18=%d\n", pcb->registers.x18);
+    kprintf("\tx19=%d\n", pcb->registers.x19);
+    kprintf("\tx20=%d\n", pcb->registers.x20);
+    kprintf("\tx21=%d\n", pcb->registers.x21);
+    kprintf("\tx22=%d\n", pcb->registers.x22);
+    kprintf("\tx23=%d\n", pcb->registers.x23);
+    kprintf("\tx24=%d\n", pcb->registers.x24);
+    kprintf("\tx25=%d\n", pcb->registers.x25);
+    kprintf("\tx26=%d\n", pcb->registers.x26);
+    kprintf("\tx27=%d\n", pcb->registers.x27);
+    kprintf("\tx28=%d\n", pcb->registers.x28);
+    kprintf("\tx29=%d\n", pcb->registers.x29);
+    kprintf("\tx30=%d\n", pcb->registers.x30);
+    kprintf("\tException Link Register=%d\n", pcb->registers.exception_link_register);
+    kprintf("\tSaved Program Status Register=%d\n", pcb->registers.saved_program_status_register);
+    kprintf("\tStack Pointer=%d\n", pcb->registers.stack_pointer);
+    kprintf("}\n");
 }
