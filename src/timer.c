@@ -8,13 +8,14 @@
 #include "process/pcb.h"
 
 // Determines the frequency of timer interrupts
-const unsigned int interval = 200000 * 10;
+const unsigned int interval = 100000 / 100;
+const unsigned int init_interval = 100000;
 unsigned long curVal = 0;
 
 void init_timer() {
     // Set the time of the next interrupt
     curVal = get32(TIMER_CLO);
-    curVal += interval;
+    curVal += init_interval;
 
     klog("Expect Next Timer Interrupt at: %d\n", curVal);
     put32(TIMER_C1, curVal); 
@@ -27,26 +28,20 @@ void init_timer() {
 extern struct pcb *currProc;
 
 void handle_timer_irq() {
-    // Set the time of the next interrupt
-    curVal += interval;
-    klog("Expect next timer interrupt at %d\n", curVal);
-
-    // Inform the timer of when we want this next interrupt
-    put32(TIMER_C1, curVal);
-
     // Tell the timer that we have acknowledged this interrupt
     // If you didnt include this, then as soon as the handler returns
     // the interrupt would get called again and you would end up back here
     // since the timer doesn't know that you have already handled it.
     put32(TIMER_CS, PRIMARY_TIMER_IRQ); 
 
-    // Choose the next process to run and swap to it
+    // Log the register state of the thread we just interrupted
     klog("======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n{");
     long * base = (long *) 4210688;
     for (int i = 0; i <= 30; ++i)
-        kprintf("\t[x%d=%d]\n", i, *(base + i));
+        klog("\t[x%d=%d]\n", i, *(base + i));
     klog("}\n======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n");
 
+    // Store all of the registers of the interrupted process to its PCB
     currProc->registers.x0 = *(base + 0);
     currProc->registers.x1 = *(base + 1); 
     currProc->registers.x2 = *(base + 2);
@@ -82,5 +77,10 @@ void handle_timer_irq() {
     currProc->registers.saved_program_status_register = *(base + 32);
     currProc->registers.stack_pointer = *(base + 33);
 
+    // Let the scheduler determine which process should be run next
     schedule();
+
+
+    // Inform the timer of when we want this next interrupt
+    put32(TIMER_C1, get32(TIMER_CLO) + interval);
 }

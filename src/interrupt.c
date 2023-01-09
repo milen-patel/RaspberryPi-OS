@@ -1,4 +1,5 @@
 #include "interrupts/interrupt.h"
+#include "interrupts/toggle.h"
 #include "sys-registers/interrupt.h"
 #include "timer/timer.h"
 #include "sys-registers/timer.h"
@@ -22,19 +23,24 @@ void show_unknown_interrupt_msg(int index, unsigned long cause, unsigned long ad
  * of the exception and handle it accordingly
  */
 void handle_irq() {
+    // Stop further interrupts from coming while we are in this handler
+    disable_irq();
+
     klog("[time=%d] IRQ Recieved\n", get32(TIMER_CLO));
     unsigned int irq = get32(IRQ_PENDING_1);
-        if (irq & PRIMARY_TIMER_IRQ) {
-            klog("[time=%d] It was determined that the IRQ was from the primary system timer\n", get32(TIMER_CLO));
-            handle_timer_irq();
-            return;
-        }
-        if (irq & SECONDARY_TIMER_IRQ) {
-            klog("Secondary Timer Interrupt Recieved, This can be used in the future\n");
-            put32(TIMER_CS, SECONDARY_TIMER_IRQ);
-            return;
-        }
-            kprintf("Unknown pending irq: %d\n", irq);
+    if (irq & PRIMARY_TIMER_IRQ) {
+        klog("[time=%d] It was determined that the IRQ was from the primary system timer\n", get32(TIMER_CLO));
+        handle_timer_irq();
+    } else if (irq & SECONDARY_TIMER_IRQ) {
+        klog("Secondary Timer Interrupt Recieved, This can be used in the future\n");
+        put32(TIMER_CS, SECONDARY_TIMER_IRQ);
+    } else {
+        kprintf("Unknown pending irq: %d\n", irq);
+    }
+
+    // Now that we have handled the IRQ, before we return to a thread enable IRQs again
+    // This isnt strictly necessary since the eret will restore PSTATE which has IRQ's enabled but is a good practice in case this norm changes
+    enable_irq();    
     return;
 }
 
