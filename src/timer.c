@@ -3,6 +3,7 @@
 #include "sys-registers/timer.h"
 #include "interrupts/interrupt.h"
 #include "libk/printf.h"
+#include "libk/log.h"
 #include "libk/memcpy.h"
 #include "process/pcb.h"
 
@@ -15,7 +16,7 @@ void init_timer() {
     curVal = get32(TIMER_CLO);
     curVal += interval;
 
-    kprintf("Expect Next Timer Interrupt at: %d\n", curVal);
+    klog("Expect Next Timer Interrupt at: %d\n", curVal);
     put32(TIMER_C1, curVal); 
 
     // Set the secondary timer to go off once as sake of illustration
@@ -28,7 +29,7 @@ extern struct pcb *currProc;
 void handle_timer_irq() {
     // Set the time of the next interrupt
     curVal += interval;
-    kprintf("Expect next timer interrupt at %d\n", curVal);
+    klog("Expect next timer interrupt at %d\n", curVal);
 
     // Inform the timer of when we want this next interrupt
     put32(TIMER_C1, curVal);
@@ -40,11 +41,11 @@ void handle_timer_irq() {
     put32(TIMER_CS, PRIMARY_TIMER_IRQ); 
 
     // Choose the next process to run and swap to it
-    kprintf("======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n{");
+    klog("======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n{");
     long * base = (long *) 4210688;
     for (int i = 0; i <= 30; ++i)
         kprintf("\t[x%d=%d]\n", i, *(base + i));
-    kprintf("}\n======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n");
+    klog("}\n======REGISTER STATE OF CURRENTLY INTERRUPTED PROCESS=======\n");
 
     currProc->registers.x0 = *(base + 0);
     currProc->registers.x1 = *(base + 1); 

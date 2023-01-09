@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+bool LOGGING_ENABLED = true;
+
 // Prints a digit as a string
 void print_digits(long n) {
   if (n < 0) {

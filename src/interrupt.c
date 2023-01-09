@@ -3,6 +3,7 @@
 #include "timer/timer.h"
 #include "sys-registers/timer.h"
 #include "libk/printf.h"
+#include "libk/log.h"
 #include "mmio.h"
 
 /*
@@ -21,15 +22,15 @@ void show_unknown_interrupt_msg(int index, unsigned long cause, unsigned long ad
  * of the exception and handle it accordingly
  */
 void handle_irq() {
-    kprintf("[time=%d] IRQ Recieved\n", get32(TIMER_CLO));
+    klog("[time=%d] IRQ Recieved\n", get32(TIMER_CLO));
     unsigned int irq = get32(IRQ_PENDING_1);
         if (irq & PRIMARY_TIMER_IRQ) {
-            kprintf("[time=%d] It was determined that the IRQ was from the primary system timer\n", get32(TIMER_CLO));
+            klog("[time=%d] It was determined that the IRQ was from the primary system timer\n", get32(TIMER_CLO));
             handle_timer_irq();
             return;
         }
         if (irq & SECONDARY_TIMER_IRQ) {
-            kprintf("Secondary Timer Interrupt Recieved, This can be used in the future\n");
+            klog("Secondary Timer Interrupt Recieved, This can be used in the future\n");
             put32(TIMER_CS, SECONDARY_TIMER_IRQ);
             return;
         }

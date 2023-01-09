@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-bool LOGGING_ENABLED = true;
 void klog(char *fmt, ...);
 
 #endif
