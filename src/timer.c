@@ -8,8 +8,8 @@
 #include "process/pcb.h"
 
 // Determines the frequency of timer interrupts
-const unsigned int interval = 100000 * 2;
-const unsigned int init_interval = 100000;
+const unsigned int interval = 100000 * 10;
+const unsigned int init_interval = 100000 * 5;
 
 void init_timer() {
     // Set the time of the next interrupt
