@@ -19,36 +19,13 @@ void kmain2() {
   //printf("CPU 2 Kernel Stack Local Variable Address: %p\n", &c);
 }
 
-void spinAndInc () {
+void spinAndInc (void * arg) {
+  char * prefix = (char *) arg;
   int i = 0;
-  kprintf("SP ~%p\n\n\n\n", &i);
+  //kprintf("SP ~%p\n\n\n\n", &i);
   while (1) {
     i++;
-    kprintf("%d\n", i);
-  }
-}
-void spinAndInc2() {
-  int i = 0;
-  kprintf("SP ~%p\n\n\n\n", &i);
-  while (1) {
-    i++;
-    kprintf("\t\t%d\n", i);
-  }
-}
-void spinAndInc3() {
-  int i = 0;
-  kprintf("SP ~%p\n\n\n\n", &i);
-  while (1) {
-    i++;
-    kprintf("\t\t\t\t%d\n", i);
-  }
-}
-void spinAndInc4() {
-  int i = 0;
-  kprintf("SP ~%p\n\n\n\n", &i);
-  while (1) {
-    i++;
-    kprintf("\t\t\t\t\t\t%d\n", i);
+    kprintf("%s%d\n", prefix, i);
   }
 }
 
@@ -88,8 +65,8 @@ void kmain(void) {
     *(context_switching_mem + i) = i;
   }
 
-  new_kernel_thread(spinAndInc2, "B");
-  new_kernel_thread(spinAndInc3, "B");
-  new_kernel_thread(spinAndInc4, "B");
-  spinAndInc();
+  new_kernel_thread(spinAndInc, "\t\t\t");
+  new_kernel_thread(spinAndInc, "\t\t\t\t\t\t");
+  new_kernel_thread(spinAndInc, "\t\t\t\t\t\t\t\t\t");
+  spinAndInc("");
 }

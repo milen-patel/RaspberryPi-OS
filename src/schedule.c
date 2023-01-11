@@ -55,6 +55,7 @@ int new_kernel_thread(void *function, void *arg) {
     pcb->state = STATE_READY;
     pcb->registers.stack_pointer = (long) stack + PAGE_SIZE;
     pcb->registers.x30 = (long) function;
+    pcb->registers.x0 = (long int) arg;
     pcb->registers.exception_link_register = (long) function;
     pcb->registers.saved_program_status_register = RETURN_TO_EL1 | DISABLE_FIQ;
     
