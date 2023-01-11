@@ -60,10 +60,13 @@ struct pcb_list {
 #define STATE_ZOMBIE 4 
 
 
+// Functions for creating new threads and adding them to the runqueue
+int new_kernel_thread(void *function, void *arg);
+int new_user_thread(void *function, void *arg);
+
 void init_scheduler();
 void schedule();
 void schedule_dump_state();
-int new_kernel_thread(void *function, void *arg);
 void print_pcb_state(struct pcb *pcb);
 void terminate_interrupt();
 #endif
