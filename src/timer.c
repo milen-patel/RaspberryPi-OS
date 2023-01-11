@@ -8,18 +8,17 @@
 #include "process/pcb.h"
 
 // Determines the frequency of timer interrupts
-const unsigned int interval = 100000 / 100;
+const unsigned int interval = 100000 * 2;
 const unsigned int init_interval = 100000;
-unsigned long curVal = 0;
 
 void init_timer() {
     // Set the time of the next interrupt
-    curVal = get32(TIMER_CLO);
-    curVal += init_interval;
+    int firstInterruptTime = get32(TIMER_CLO) + init_interval;
 
-    klog("Expect Next Timer Interrupt at: %d\n", curVal);
-    put32(TIMER_C1, curVal); 
+    klog("Expect Next Timer Interrupt at: %d\n", firstInterruptTime);
+    put32(TIMER_C1, firstInterruptTime); 
 
+    // For now, the secondary timer will remain disabled but we will keep the code for future use
     // Set the secondary timer to go off once as sake of illustration
     // put32(TIMER_C3, curVal + 8);
 }
