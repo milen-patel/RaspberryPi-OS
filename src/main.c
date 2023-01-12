@@ -22,11 +22,15 @@ void kmain2() {
 void spinAndInc (void * arg) {
   char * prefix = (char *) arg;
   int i = 0;
-  //kprintf("SP ~%p\n\n\n\n", &i);
+  kprintf("\nSP=~%p\n", &i);
   while (1) {
     i++;
     kprintf("%s%d\n", prefix, i);
   }
+}
+
+void userFunction(char *arg) {
+  while (1) kprintf("%sIn user function\n", arg);
 }
 
 void kmain(void) {
@@ -68,5 +72,6 @@ void kmain(void) {
   new_kernel_thread(spinAndInc, "\t\t\t");
   new_kernel_thread(spinAndInc, "\t\t\t\t\t\t");
   new_kernel_thread(spinAndInc, "\t\t\t\t\t\t\t\t\t");
+  new_user_thread(userFunction, "\t\t\t\t\t\t\t\t\t\t\t\t\t");
   spinAndInc("");
 }
