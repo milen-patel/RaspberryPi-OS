@@ -43,39 +43,6 @@ void init_scheduler() {
     currProc = main_pcb;
 }
 
-int new_kernel_thread(void *function, void *arg) {
-    klog("A request to create a new kernel thread has been made\n");
-    // Get a stack for the thread
-    void *stack = alloc_page();
-    struct pcb *pcb = alloc_pcb();
-    pcb->pid = getNextPID();
-    pcb->stack = stack;
-    pcb->priority = currProc->priority;
-    pcb->numSlicesUsed = 0;
-    pcb->state = STATE_READY;
-    pcb->registers.stack_pointer = (long) stack + PAGE_SIZE;
-    pcb->registers.x30 = (long) function;
-    pcb->registers.x0 = (long int) arg;
-    pcb->registers.exception_link_register = (long) function;
-    pcb->registers.saved_program_status_register = RETURN_TO_EL1 | DISABLE_FIQ;
-    
-    // Add it to the queue
-    struct pcb_list *node = alloc_listNode();
-    node->pcb = pcb;
-    
-    struct pcb_list *traversal_curr = runqueue;
-    while (traversal_curr->next) {
-        traversal_curr = traversal_curr->next;
-    }
-    traversal_curr->next = node;
-    node->next = 0x0;
-
-    // TODO needs to handle the arg
-    klog("New thread has been created and added to PCB list with pid=%d\n", pcb->pid);
-    print_pcb_state(pcb);
-    return pcb->pid;
-}
-
 void do_switch_register_state() {
     long *base = (long *) 4210688;
     *(base + 0) = currProc->registers.x0;
@@ -195,4 +162,45 @@ void print_pcb_state(struct pcb *pcb) {
     klog("\tSaved Program Status Register=%d\n", pcb->registers.saved_program_status_register);
     klog("\tStack Pointer=%d\n", pcb->registers.stack_pointer);
     klog("}\n");
+}
+
+int new_thread(void *function, void* arg, bool isKernel) {
+    klog("A request to create a new %s thread has been made\n", (isKernel ? "Kernel" : "User"));
+    // Get a stack for the thread
+    void *stack = alloc_page();
+    struct pcb *pcb = alloc_pcb();
+    pcb->pid = getNextPID();
+    pcb->stack = stack;
+    pcb->priority = currProc->priority;
+    pcb->numSlicesUsed = 0;
+    pcb->state = STATE_READY;
+    pcb->registers.stack_pointer = (long) stack + PAGE_SIZE;
+    pcb->registers.x30 = (long) function;
+    pcb->registers.x0 = (long int) arg;
+    pcb->registers.exception_link_register = (long) function;
+    pcb->registers.saved_program_status_register = DISABLE_FIQ | (isKernel ? RETURN_TO_EL1 : RETURN_TO_EL0);
+    
+    // Add it to the queue
+    struct pcb_list *node = alloc_listNode();
+    node->pcb = pcb;
+    
+    struct pcb_list *traversal_curr = runqueue;
+    while (traversal_curr->next) {
+        traversal_curr = traversal_curr->next;
+    }
+    traversal_curr->next = node;
+    node->next = 0x0;
+
+    klog("New thread has been created and added to PCB list with pid=%d\n", pcb->pid);
+    print_pcb_state(pcb);
+    return pcb->pid;
+}
+
+// TODO make function parameter be a function with correct signature instead of void *
+int new_user_thread(void *function, void *arg) {
+    return new_thread(function, arg, false);
+}
+
+int new_kernel_thread(void *function, void *arg) {
+    return new_thread(function, arg, true);
 }
