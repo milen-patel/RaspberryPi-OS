@@ -2,7 +2,7 @@
 
 // push all of the EL0 registers onto the kernel stack so we dont mess up while handling interrupts
 // See for why we cant just push: https://stackoverflow.com/questions/27941220/push-lr-and-pop-lr-in-arm-arch64
-.macro push_kernel_state_onto_stack
+.macro push_kernel_state_onto_stack, ELSOURCE
     # Now store all this information in a particular spot in memory
 
     # Store x1 onto the stack and then load the base address of where we want to store regstate into memory to x1
@@ -51,7 +51,13 @@
      MRS x4, SPSR_EL1
      STR x3, [x1, #31 * 8]
      STR x4, [x1, #32 * 8]
-     mov x3, sp
+
+     .if \ELSOURCE == 0
+     MRS x3, SP_EL0
+     MOV SP, x3
+     .else
+     MOV x3, SP
+     .endif
      STR x3, [x1, #33 * 8]
 
      MRS x3, ELR_EL1
@@ -71,6 +77,7 @@
     MSR SPSR_EL1, x4 
     LDR x3, [x1, #33 * 8]
     mov SP, x3
+    MSR SP_EL0, x3
 
      # Now load the general registers
     LDR x0, [x1, #0 * 8]
@@ -162,7 +169,7 @@ exception_vector_list:
     handle_invalid_entry SYNCHRONOUS_EL0_AARCH64
     
     .align 7 // (2^7 bytes per entry)
-    handle_invalid_entry IRQ_EL0_AARCH64 
+    b handle_el0_synch
     
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry FIQ_EL0_AARCH64
@@ -182,9 +189,12 @@ exception_vector_list:
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry SERROR_EL0_AARCH32
     
-
+handle_el0_synch:
+     push_kernel_state_onto_stack 0 
+     bl handle_irq
+     restore_kernel_state_from_stack_and_exit
 handle_el1_irq:
-     push_kernel_state_onto_stack
+     push_kernel_state_onto_stack 1
      bl handle_irq
      restore_kernel_state_from_stack_and_exit
 
