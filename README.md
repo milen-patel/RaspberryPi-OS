@@ -1,65 +1,36 @@
-# RaspberryPi-OS
-Building an Operating System for the RPI From Scratch!
-
-# Task List
-1. Create Makefile to correctly compile stand-alone kernel
-2. In boot.S, disable all non-primary cores and switch exception level to EL1 (whereas EL3 is the default)
-3. Set up GPIO Pins, initialize the miniUART
-4. Create interface for reading and writing to/from the UART
-5. Implement printf
-6. Set up Interrupt Vector Table
-7. Enable Raspberry Pi Hardware Timer and Configure for interrupts
-8. Wrangle open RAM Space into 4kb Pages, create functions for reserving/freeing pages
-
-# Running Tasks
-* Figure out why uart_recv and uart_send can't have their while loops optimized
-* Add library function for reading uart line, uart_printf, etc.
-
-
-# Some Explanations
-## Accessing the Exception Level
-
-In the ARMv8 architecture, the current exception level (EL) is determined by the value of the Current Exception Level (CURRENTEL) register, which is a read-only register that holds the current EL.
-
-You can obtain the current EL by reading the CURRENTEL register using an instruction such as MRS, which is used to read system registers. Here is an example of how you can use the MRS instruction to read the CURRENTEL register and store the result in a general-purpose register:
-```
-MRS x0, CURRENTEL
-```
-
-This instruction will read the CURRENTEL register and store the result in register x0. The value of the CURRENTEL register is encoded as a 2-bit field, with the following possible values:
-
-EL0: This is the lowest exception level, and is used for normal, unprivileged code.
-EL1: This is the exception level used for privileged code, such as the operating system kernel.
-EL2: This is an optional exception level that is used for hypervisors or other specialized systems.
-EL3: This is the highest exception level, and is used for secure monitors or other trusted code.
-You can use the value of the CURRENTEL register to determine the current exception level and execute different code paths depending on the exception level. For example, you might want to execute different code depending on whether you are running in EL0 (unprivileged) or EL1 (privileged) mode.
-
-Note that the CURRENTEL register is a read-only register, so you cannot directly modify its value. To change the exception level, you must use an instruction such as MSR to write to the Exception Level (ELR) register, which holds the exception level that will be entered when returning from an exception.
-
-The CURRENTEL register is encoded as a 2-bit field, which means that it is necessary to shift the value right by two bits in order to extract the EL value.
-
-You can read further into this here: https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/CurrentEL--Current-Exception-Level
+# A Raspberry Pi Operating Sytem
 
 # Tutorials
+* **Lesson 00** - Introduction and Motivation
+* **Lesson 01** - Understanding the Rasberry Pi Boot Sequence
+* **Lesson 02** - Cross Compiling from x86 to ARMv8
+* **Lesson XX** - Booting the Pi
+* **Lesson XX** - Setting up the C Runtime Environment
+* **Lesson XX** - Setting up UART
+* **Lesson XX** - Simplying Compilation with a Makefile
+* **Lesson XX** - Implementing `printf()` 
+* **Lesson XX** - Understanding Exception Levels
+* **Lesson XX** - Setting up Interrupt Handlers
+* **Lesson XX** - Enabling the System Timer
+* **Lesson XX** - Dividing RAM into smaller pages
+* **Lesson XX** - Implementing `malloc()` and `free()`
+* **Lesson XX** - Understanding threads and processes
+* **Lesson XX** - Context Switching
+* **Lesson XX** - User Threads vs. Kernel Threads
+* **Lesson XX** - Virtualizing Kernel Memory
+* **Lesson XX** - Virtualizing User Space
+* **Lesson XX** - System Calls
+* **Lesson XX** - Spinlocks
 
-* Lesson 0 - Understanding the Rasberry Pi Boot Sequence
-* Lesson 1 - Cross Compiling from x86 to ARMv8
-* Lesson 2 - Booting the Pi
-* Lesson 2.5 - Setting up the C Runtime Environment
-* Lesson 3 - Setting up UART
-* Lesson 4 - Simplying Compilation with a Makefile
-* Lesson 5 - Implementing `printf()` 
-* Lesson 6 - Setting up Interrupt Handlers
-* Lesson 7 - Enabling the System Timer
-* Lesson 8 - Dividing RAM into smaller pages
-* Lesson 9 - Implementing `malloc()` and `free()`
-* Lesson 10 - Understanding threads and processes
-* Lesson 11 - Context Switching
-* Lesson 12 - User Threads vs. Kernel Threads
-* Lesson 13 - Virtualizing Kernel Memory
+# Lesson 0 - Introduction and Motivation
 
+During my last semester at school, I took a course on Operating Systems which, although very interesting, left more questions than answers. I wanted to know if it was possible to build an actual operating system, so one day after class I asked the professor who told me it wasn't feasible and that getting even the most basic operating system would be too demanding of a task.
 
-# Lesson 0
+That answer was unsatisfying to me, so I did my own research which led me to find a handful of posts from people who managed to write an operating system for the Raspberry Pi from scratch. Fortunately, I had one laying around so I immediately got to work on reading others' tutorials and playing around on my own. Although I found lots of interesting resources, I felt like most of the tutorials were either dated, skipped over key parts, or made otherwise confusing decisions for me to understand. So, I wanted to combine the best aspects of all the resources out there while adding in my own direction which has led me to creating this tutorial.
+
+Although I'm just getting started on writing these, by the time they are finished, I hope they can be of value to anybody else who is either interested in OS development or, like me, had so many unanswered curious questions after taking an OS course.
+
+# Lesson 1 - Understanding the Rasberry Pi Boot Sequence
 
 Although we are writing the kernel for the Raspberry Pi, theres actually a lot more going on behind the scenes. Over the next sequence of tutorials we will be writing code, compiling it into a single file, `kernel8.img`, moving it to an SD card, putting that SD card into the Pi, and then powering up the Pi.
 
@@ -77,7 +48,9 @@ I intentionally omitted full details in parts of this section because things can
  * https://www.lions-wing.net/maker/raspberry-1/boot.html
  * http://www.diy.ind.in/raspberry-pi/55-run-scripts-on-startup-in-raspberry-pi
 
-# Lesson 1
+ It's also worth noting that this process is largely different for each model of the Raspberry Pi. For the sake of this tutorial, I will be using a Raspberry Pi Model 3. Although I wanted to purchase a Model 4 to keep things up to date, I couldn't justify the $100+ resale price at the time when my Model 3 was performing flawlessly.
+
+# Lesson 2 - Cross Compiling from x86 to ARMv8
 
 I am working on an Intel Mac which natively uses Intel's x86 CPU architecture. One implication is that when I compile any C or assembly code using `gcc` or `clang`, the outputted binary contains x86 instructions. This is not going to work for our project because the Raspberry Pi uses an entirely different instruction set, ARMv8. Here are some key differences between the two:
 
@@ -137,3 +110,42 @@ Disassembly of section .text:
 ```
 
 As you can see, there are infact aarch64 instructions and not x86 instructions! If you don't believe me, try compile the same program `cross-compiler-gcc hello.c` and then verify that executing `./a.out` fails since our x86 computer cannot make sense of this foreign assembly code.
+
+# Task List
+1. Create Makefile to correctly compile stand-alone kernel
+2. In boot.S, disable all non-primary cores and switch exception level to EL1 (whereas EL3 is the default)
+3. Set up GPIO Pins, initialize the miniUART
+4. Create interface for reading and writing to/from the UART
+5. Implement printf
+6. Set up Interrupt Vector Table
+7. Enable Raspberry Pi Hardware Timer and Configure for interrupts
+8. Wrangle open RAM Space into 4kb Pages, create functions for reserving/freeing pages
+
+# Running Tasks
+* Figure out why uart_recv and uart_send can't have their while loops optimized
+* Add library function for reading uart line, uart_printf, etc.
+
+
+# Some Explanations
+## Accessing the Exception Level
+
+In the ARMv8 architecture, the current exception level (EL) is determined by the value of the Current Exception Level (CURRENTEL) register, which is a read-only register that holds the current EL.
+
+You can obtain the current EL by reading the CURRENTEL register using an instruction such as MRS, which is used to read system registers. Here is an example of how you can use the MRS instruction to read the CURRENTEL register and store the result in a general-purpose register:
+```
+MRS x0, CURRENTEL
+```
+
+This instruction will read the CURRENTEL register and store the result in register x0. The value of the CURRENTEL register is encoded as a 2-bit field, with the following possible values:
+
+EL0: This is the lowest exception level, and is used for normal, unprivileged code.
+EL1: This is the exception level used for privileged code, such as the operating system kernel.
+EL2: This is an optional exception level that is used for hypervisors or other specialized systems.
+EL3: This is the highest exception level, and is used for secure monitors or other trusted code.
+You can use the value of the CURRENTEL register to determine the current exception level and execute different code paths depending on the exception level. For example, you might want to execute different code depending on whether you are running in EL0 (unprivileged) or EL1 (privileged) mode.
+
+Note that the CURRENTEL register is a read-only register, so you cannot directly modify its value. To change the exception level, you must use an instruction such as MSR to write to the Exception Level (ELR) register, which holds the exception level that will be entered when returning from an exception.
+
+The CURRENTEL register is encoded as a 2-bit field, which means that it is necessary to shift the value right by two bits in order to extract the EL value.
+
+You can read further into this here: https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/CurrentEL--Current-Exception-Level
