@@ -127,6 +127,12 @@ As you can see, there are infact aarch64 instructions and not x86 instructions! 
 
 
 # Some Explanations
+## Why do we have to name the final output file kernel8.img?
+To be completed...
+
+## Understanding LED indicators on the Rasberry Pi
+To be completed...
+
 ## Accessing the Exception Level
 
 In the ARMv8 architecture, the current exception level (EL) is determined by the value of the Current Exception Level (CURRENTEL) register, which is a read-only register that holds the current EL.
