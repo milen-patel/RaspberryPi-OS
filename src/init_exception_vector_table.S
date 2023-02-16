@@ -3,73 +3,124 @@
 
 // push all of the EL0 registers onto the kernel stack so we dont mess up while handling interrupts
 // See for why we cant just push: https://stackoverflow.com/questions/27941220/push-lr-and-pop-lr-in-arm-arch64
-.macro push_kernel_state_onto_stack, el
-  sub	sp, sp, #272
-	stp	x0, x1, [sp, #16 * 0]
-	stp	x2, x3, [sp, #16 * 1]
-	stp	x4, x5, [sp, #16 * 2]
-	stp	x6, x7, [sp, #16 * 3]
-	stp	x8, x9, [sp, #16 * 4]
-	stp	x10, x11, [sp, #16 * 5]
-	stp	x12, x13, [sp, #16 * 6]
-	stp	x14, x15, [sp, #16 * 7]
-	stp	x16, x17, [sp, #16 * 8]
-	stp	x18, x19, [sp, #16 * 9]
-	stp	x20, x21, [sp, #16 * 10]
-	stp	x22, x23, [sp, #16 * 11]
-	stp	x24, x25, [sp, #16 * 12]
-	stp	x26, x27, [sp, #16 * 13]
-	stp	x28, x29, [sp, #16 * 14]
+.macro push_kernel_state_onto_stack, ELSOURCE
+    # Now store all this information in a particular spot in memory
 
-	.if	\el == 0
-	mrs	x21, sp_el0
-	.else
-	add	x21, sp, #272
-	.endif /* \el == 0 */
+    # Store x1 onto the stack and then load the base address of where we want to store regstate into memory to x1
+    STR x1, [sp, #-8]!
+    mov x1, #0x4040
+    lsl x1, x1, #8
 
-	mrs	x22, elr_el1
-	mrs	x23, spsr_el1
+     # Now push x0
+     STR x0, [x1, #0 * 8] 
 
-	stp	x30, x21, [sp, #16 * 15] 
-	stp	x22, x23, [sp, #16 * 16]
+     # Now we have x0's value saved, we can pop x1 off the stack into x0 and store that into memory
+     LDR x0, [sp], #8
+     STR x0, [x1, #1 * 8]
+
+     STR x2, [x1, #2 * 8]
+     STR x3, [x1, #3 * 8]
+     STR x4, [x1, #4 * 8]
+     STR x5, [x1, #5 * 8]
+     STR x6, [x1, #6 * 8]
+     STR x7, [x1, #7 * 8]
+     STR x8, [x1, #8 * 8]
+     STR x9, [x1, #9 * 8]
+     STR x10, [x1, #10 * 8]
+     STR x11, [x1, #11 * 8]
+     STR x12, [x1, #12 * 8]
+     STR x13, [x1, #13 * 8]
+     STR x14, [x1, #14 * 8]
+     STR x15, [x1, #15 * 8]
+     STR x16, [x1, #16 * 8]
+     STR x17, [x1, #17 * 8]
+     STR x18, [x1, #18 * 8]
+     STR x19, [x1, #19 * 8]
+     STR x20, [x1, #20 * 8]
+     STR x21, [x1, #21 * 8]
+     STR x22, [x1, #22 * 8]
+     STR x23, [x1, #23 * 8]
+     STR x24, [x1, #24 * 8]
+     STR x25, [x1, #25 * 8]
+     STR x26, [x1, #26 * 8]
+     STR x27, [x1, #27 * 8]
+     STR x28, [x1, #28 * 8]
+     STR x29, [x1, #29 * 8]
+     STR x30, [x1, #30 * 8]
+
+     MRS x3, ELR_EL1
+     MRS x4, SPSR_EL1
+     STR x3, [x1, #31 * 8]
+     STR x4, [x1, #32 * 8]
+
+     .if \ELSOURCE == 0
+     MRS x3, SP_EL0
+     MOV SP, x3
+     .else
+     MOV x3, SP
+     .endif
+     STR x3, [x1, #33 * 8]
+
+     MRS x3, ELR_EL1
+     CBZ x3, show_unknown_interrupt_msg 
+
 .endm
 
-.macro restore_kernel_state_from_stack_and_exit, el
-	ldp	x22, x23, [sp, #16 * 16]
-	ldp	x30, x21, [sp, #16 * 15] 
+.macro restore_kernel_state_from_stack_and_exit
+    # Load the base address back into x1, the deal is that schedule should have updated all the values here for the next process to run
+    mov x1, #0x4040
+    lsl x1, x1, #8
 
-	.if	\el == 0
-	msr	sp_el0, x21
-	.endif /* \el == 0 */
+    # Start by loading the system registers
+    LDR x3, [x1, #31 * 8]
+    LDR x4, [x1, #32 * 8]
+    MSR ELR_EL1, x3
+    MSR SPSR_EL1, x4 
+    LDR x3, [x1, #33 * 8]
+    mov SP, x3
+    MSR SP_EL0, x3
 
-	msr	elr_el1, x22			
-	msr	spsr_el1, x23
+     # Now load the general registers
+    LDR x0, [x1, #0 * 8]
+    # == We Intentionally Skip x1 since we are using that to hold the read address ==
+    LDR x2, [x1, #2 * 8]
+    LDR x3, [x1, #3 * 8]
+    LDR x4, [x1, #4 * 8]
+    LDR x5, [x1, #5 * 8]
+    LDR x6, [x1, #6 * 8]
+    LDR x7, [x1, #7 * 8]
+    LDR x8, [x1, #8 * 8]
+    LDR x9, [x1, #9 * 8]
+    LDR x10, [x1, #10 * 8]
+    LDR x11, [x1, #11 * 8]
+    LDR x12, [x1, #12 * 8]
+    LDR x13, [x1, #13 * 8]
+    LDR x14, [x1, #14 * 8]
+    LDR x15, [x1, #15 * 8]
+    LDR x16, [x1, #16 * 8]
+    LDR x17, [x1, #17 * 8]
+    LDR x18, [x1, #18 * 8]
+    LDR x19, [x1, #19 * 8]
+    LDR x20, [x1, #20 * 8]
+    LDR x21, [x1, #21 * 8]
+    LDR x22, [x1, #22 * 8]
+    LDR x23, [x1, #23 * 8]
+    LDR x24, [x1, #24 * 8]
+    LDR x25, [x1, #25 * 8]
+    LDR x26, [x1, #26 * 8]
+    LDR x27, [x1, #27 * 8]
+    LDR x28, [x1, #28 * 8]
+    LDR x29, [x1, #29 * 8]
+    LDR x30, [x1, #30 * 8]
+    # Now load x1
+    LDR x1, [x1, #1 * 8]
 
-
-	ldp	x0, x1, [sp, #16 * 0]
-	ldp	x2, x3, [sp, #16 * 1]
-	ldp	x4, x5, [sp, #16 * 2]
-	ldp	x6, x7, [sp, #16 * 3]
-	ldp	x8, x9, [sp, #16 * 4]
-	ldp	x10, x11, [sp, #16 * 5]
-	ldp	x12, x13, [sp, #16 * 6]
-	ldp	x14, x15, [sp, #16 * 7]
-	ldp	x16, x17, [sp, #16 * 8]
-	ldp	x18, x19, [sp, #16 * 9]
-	ldp	x20, x21, [sp, #16 * 10]
-	ldp	x22, x23, [sp, #16 * 11]
-	ldp	x24, x25, [sp, #16 * 12]
-	ldp	x26, x27, [sp, #16 * 13]
-	ldp	x28, x29, [sp, #16 * 14]
-	add	sp, sp, #272	
-	eret
+    # Now that we have restored register state, return to exactly where we left off before the interrupt happened
+    eret
 .endm
 
 // When we get an invalid interrupt type, want to print it to the screen and then spin!
 .macro handle_invalid_entry type
-   // Save the register state
-   push_kernel_state_onto_stack 1
-
     mov x0, #\type // i.e. index into the exception vector table
 
     // See page 2432 of the aarch64 manual
@@ -107,8 +158,8 @@ exception_vector_list:
     handle_invalid_entry SYNCHRONOUS_EL1_SP_EL1
     
     .align 7 // (2^7 bytes per entry)
-        b el1_irq
-     
+    b handle_el1_irq
+
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry FIQ_EL1_SP_EL1
     
@@ -119,8 +170,8 @@ exception_vector_list:
     b el0_sync
     
     .align 7 // (2^7 bytes per entry)
-    b el0_irq
-
+    b handle_el0_synch
+    
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry FIQ_EL0_AARCH64
     
@@ -139,59 +190,15 @@ exception_vector_list:
     .align 7 // (2^7 bytes per entry)
     handle_invalid_entry SERROR_EL0_AARCH32
     
-el0_irq:
-    push_kernel_state_onto_stack 0
-    bl handle_irq
-    restore_kernel_state_from_stack_and_exit 0
+handle_el0_synch:
+     push_kernel_state_onto_stack 0 
+     bl handle_irq
+     restore_kernel_state_from_stack_and_exit
+handle_el1_irq:
+     push_kernel_state_onto_stack 1
+     bl handle_irq
+     restore_kernel_state_from_stack_and_exit
 
-el1_irq:
-    push_kernel_state_onto_stack 1 
-    bl handle_irq
-    restore_kernel_state_from_stack_and_exit 1
-
-el0_sync:
-    # Push register state onto the stack
-    push_kernel_state_onto_stack 0
-    
-    # Figure out where the exception came from
-    mrs	x25, esr_el1				// read the syndrome register
-	lsr	x24, x25, #26
-	cmp	x24, #21
-	b.eq	el0_svc
-    handle_invalid_entry 69
-
-
-sc_nr   .req    x25                  // number of system calls
-scno    .req    x26                  // syscall number
-stbl    .req    x27 
-
-el0_svc:
-    adr    stbl, sys_call_table      // load syscall table pointer
-    uxtw   scno, w8                  // syscall number in w8
-    mov    sc_nr, #NUM_SYSCALLS
-    bl     enable_irq
-    cmp    scno, sc_nr               // check upper syscall limit
-    b.hs   ni_sys
-
-    ldr    x16, [stbl, scno, lsl #3] // address in the syscall table
-    blr    x16                       // call sys_* routine
-    b      ret_from_syscall
-
-ni_sys:
-   handle_invalid_entry SYNCHRONOUS_EL0_AARCH64 
-
-ret_from_syscall:
-    bl    disable_irq
-    str   x0, [sp, #0]             // returned x0
-    restore_kernel_state_from_stack_and_exit 0
-
-
-.global ret_from_fork
-ret_from_fork:
-    bl    enable_preemption
-    cbz   x19, ret_to_user            // not a kernel thread
-    mov   x0, x20
-    blr   x19
-ret_to_user:
-    bl disable_irq
-    restore_kernel_state_from_stack_and_exit 0
+.global terminate_interrupt
+terminate_interrupt:
+    restore_kernel_state_from_stack_and_exit

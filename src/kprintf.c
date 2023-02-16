@@ -1,11 +1,14 @@
-#include "printf.h"
+#include "libk/printf.h"
+#include "libk/log.h"
 #include "uart.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
+bool LOGGING_ENABLED = true;
+
 // Prints a digit as a string
-void print_digits(int64_t n) {
+void print_digits(long n) {
   if (n < 0) {
     uart_send('-');
     n = -n;
@@ -17,9 +20,8 @@ void print_digits(int64_t n) {
 }
 
 // See: https://publications.gbdirect.co.uk//c_book/chapter9/stdarg.html (For handling an unknown number of variables)
-void kprintf(char *str, ...) {
-    va_list ap;
-    va_start(ap, str);
+
+void kwriter(char *str, va_list ap) {
 
     bool isNextSpecial = false;
     while (*str != '\0') {
@@ -31,7 +33,7 @@ void kprintf(char *str, ...) {
         if (isNextSpecial) {
             isNextSpecial = false;
             if (*str == 'd') {
-                int val = va_arg(ap, int);
+                long val = va_arg(ap, long);
                 print_digits(val);
             } else if (*str == 'c') {
                 char c = (char) va_arg(ap, int);
@@ -53,6 +55,19 @@ void kprintf(char *str, ...) {
         str++;
     }
 
+}
+
+void kprintf(char *str, ...) {
+    va_list ap;
+    va_start(ap, str);
+    kwriter(str, ap);
+}
+
+void klog(char *str, ...) {
+    if (!LOGGING_ENABLED) return;
+    va_list ap;
+    va_start(ap, str);
+    kwriter(str, ap);
 }
 
 void test_printf() {

@@ -1,6 +1,6 @@
 #include "paging/paging.h"
 #include "paging/alloc.h"
-#include "kprintf.h"
+#include "libk/printf.h"
 #include <stdbool.h>
 #include <stdint.h>
 

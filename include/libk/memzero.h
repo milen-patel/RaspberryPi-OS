@@ -1,5 +1,4 @@
 #ifndef _MEMZERO_H
 #define _MEMZERO_H
-
-void memzero(void *addr, unsigned long bytes);
+void memzero(void *ptr, size_t size);
 #endif

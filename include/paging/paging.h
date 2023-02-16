@@ -7,6 +7,27 @@
 
 #define NUM_FREE_BYTES (MMIO_BASE - START_OF_KERNEL_STACK_CPU2)
 #define NUM_PAGES (NUM_FREE_BYTES / 4096)
+#define MM_TYPE_PAGE_TABLE		0x3
+#define MM_TYPE_PAGE 			0x3
+#define MM_TYPE_BLOCK			0x1
+#define MM_ACCESS			(0x1 << 10)
+#define MM_ACCESS_PERMISSION		(0x01 << 6) 
+#define MT_DEVICE_nGnRnE 		0x0
+#define MT_NORMAL_NC			0x1
+#define MT_DEVICE_nGnRnE_FLAGS		0x00
+#define MT_NORMAL_NC_FLAGS  		0x44
+#define MAIR_VALUE			(MT_DEVICE_nGnRnE_FLAGS << (8 * MT_DEVICE_nGnRnE)) | (MT_NORMAL_NC_FLAGS << (8 * MT_NORMAL_NC))
+#define MMU_FLAGS	 		(MM_TYPE_BLOCK | (MT_NORMAL_NC << 2) | MM_ACCESS)
+
+#define VA_START 0xFFFF000000000000
+
+
+#define TCR_T0SZ			(64 - 48) 
+#define TCR_T1SZ			((64 - 48) << 16)
+#define TCR_TG0_4K			(0 << 14)
+#define TCR_TG1_4K			(2 << 30)
+#define TCR_VALUE			(TCR_T0SZ | TCR_T1SZ | TCR_TG0_4K | TCR_TG1_4K)
+
 
 #endif
 
