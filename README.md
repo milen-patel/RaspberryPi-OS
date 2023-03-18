@@ -84,7 +84,7 @@ If you are developing on Windows/Linux then you will need to read around and fin
 
 Now that we have the cross-compiler installed, lets try compile a small program to make sure that everything appears to be working. I have made a new file called `hello.c` with the following source code.
 
-```
+```c
 // This code doesn't produce any output, we are more interested in seeing that it gets compiled to aarch64 instructions
 int main() {
         int i = 0;
@@ -97,7 +97,7 @@ We can now use the new compiler we downloaded to convert this C program to an ob
 
 We can then look at the assembly instructions themselves by using the following command: `objdump -d hello.o`. If your compiler installed correctly, you should see something along the lines of this:
 
-```
+```armasm
 hello.o:        file format elf64-littleaarch64
 
 Disassembly of section .text:
