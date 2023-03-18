@@ -2,6 +2,7 @@
 layout: default
 title: Build an Operating System
 nav_order: 1
+permalink: /
 ---
 
 # A Raspberry Pi Operating Sytem
