@@ -1,3 +1,7 @@
 remote_theme: milen-patel/just-the-docs
 title: Operating System Development
 description: Learn how to create an OS for the Raspberry Pi
+
+# For copy button on code
+enable_copy_code_button: true
+
