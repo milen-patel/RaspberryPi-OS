@@ -1,3 +1,9 @@
+---
+layout: default
+title: Build an Operating System
+nav_order: 1
+---
+
 # A Raspberry Pi Operating Sytem
 
 # Tutorials
