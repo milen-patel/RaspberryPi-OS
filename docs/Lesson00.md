@@ -3,6 +3,7 @@ layout: default
 title: Lesson 00
 parent: Build an Operating System
 ---
+# **Lesson 00** - Introduction and Motivation
 
 During my last semester at school, I took a course on Operating Systems which, although very interesting, left more questions than answers. I wanted to know if it was possible to build an actual operating system, so one day after class I asked the professor who told me it wasn’t feasible and that getting even the most basic operating system would be too demanding of a task.
 
