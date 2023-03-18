@@ -3,6 +3,7 @@ layout: default
 title: Build an Operating System
 nav_order: 1
 permalink: /
+has_children: true
 ---
 
 # A Raspberry Pi Operating Sytem
