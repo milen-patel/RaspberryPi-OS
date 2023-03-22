@@ -1,5 +1,4 @@
 #include "interrupts/exception-vector-indices.h"
-#include "syscall/table.h"
 
 // push all of the EL0 registers onto the kernel stack so we dont mess up while handling interrupts
 // See for why we cant just push: https://stackoverflow.com/questions/27941220/push-lr-and-pop-lr-in-arm-arch64
@@ -121,18 +120,28 @@
 
 // When we get an invalid interrupt type, want to print it to the screen and then spin!
 .macro handle_invalid_entry type
-    mov x0, #\type // i.e. index into the exception vector table
+    MOV w1, #'d'
+    MOVZ x0, #0x5040
+    MOVK x0, #0x3F21, LSL #16
+    str w1, [x0], #1
+    str w1, [x0], #1
+    str w1, [x0], #1
+    str w1, [x0], #1
+    str w1, [x0], #1
+    str w1, [x0], #1
+    b proc_hang
+    # mov x0, #\type // i.e. index into the exception vector table
 
-    // See page 2432 of the aarch64 manual
-    mrs x1, esr_el1 // i.e. the cause of the exception
+    # // See page 2432 of the aarch64 manual
+    # mrs x1, esr_el1 // i.e. the cause of the exception
 
-    // For synchronous exceptions, we would like to know the address that caused the exception
-    mrs x2, elr_el1
+    # // For synchronous exceptions, we would like to know the address that caused the exception
+    # mrs x2, elr_el1
 
-    // Print error to screen
-    bl show_unknown_interrupt_msg
+    # // Print error to screen
+    # bl show_unknown_interrupt_msg
 
-    // Spin (for now)
+    # // Spin (for now)
     b proc_hang
 
 .endm
@@ -167,7 +176,7 @@ exception_vector_list:
     handle_invalid_entry SERROR_EL1_SP_EL1
     
     .align 7 // (2^7 bytes per entry)
-    b el0_sync
+    handle_invalid_entry SYNCHRONOUS_EL0_AARCH64
     
     .align 7 // (2^7 bytes per entry)
     b handle_el0_synch
@@ -195,6 +204,12 @@ handle_el0_synch:
      bl handle_irq
      restore_kernel_state_from_stack_and_exit
 handle_el1_irq:
+    MOV w1, #'d'
+    MOVZ x0, #0x5040
+    MOVK x0, #0x3F21, LSL #16
+    str w1, [x0], #1
+    str w1, [x0], #1
+    str w1, [x0], #1
      push_kernel_state_onto_stack 1
      bl handle_irq
      restore_kernel_state_from_stack_and_exit

@@ -21,12 +21,12 @@
     .bss : { *(.bss*) } 
     bss_end = .;
 
-    . = ALIGN(0x1000);
-    .cpuakernelstack = 0xFFFF000000401000; /* TODO will need to revisit these shortly... */
-    __paging_start = 0xFFFF000000401000;
 
     /* Must reserve three consecutive pages for the kernel's paging tables */
     . = ALIGN(0x1000);
     kernel_page_table_start = .;
     .data.kernel_page_tables : { . += (4096 * 3);}
+    . = ALIGN(0x1000);
+    .cpuakernelstack = 0xFFFF000000401000; /* TODO will need to revisit these shortly... */
+    __paging_start = 0xFFFF000000401000;
 }

@@ -113,8 +113,8 @@ master:
 	mov x2, #0
 
 	# Create Descriptor for first entry
-	mov x3, #MMU_FLAGS
-	orr x2, x2, x3
+	# mov x3, #MMU_FLAGS
+	# orr x2, x2, x3
 vmap_loop:
 	# Store descriptor into correct offset into table
 	str x2, [x1, x0, lsl #3]
@@ -139,6 +139,7 @@ vmap_loop:
 	# Set the page table register to the physical address of the PGD table
 	adrp x0, kernel_page_table_start
 	msr ttbr1_el1, x0
+	msr ttbr0_el1, x0
 
 	# Set configuration parameters for the MMU as a whole (TODO)
 	ldr    x0, =(TCR_VALUE)
@@ -152,11 +153,35 @@ vmap_loop:
 	mov sp, #START_OF_KERNEL_STACK
     bl kmain
 
-	ldr x0, =kmain
+	# DELETE
+	# MOVZ x0, #0xFFFF, LSL #48
+	# MOVK x0, #0x0000, LSL #32
+	# MOVK x0, #0x3F21, LSL #16
+	# MOVK x0, #0x5040
+ #    MOV w1, #'d'
+ #    str w1, [x0], #1
+ #    str w1, [x0], #1
+	# bl verifie
+
+	isb 
+	# forces changes to be seen before MMU is enabled (see ARM documentation)
+	ldr x0, =kmain_succeed_turn_on_MMU
 	mov x1, #SCTLR_MMU_ENABLED
 	msr    sctlr_el1, x1
+	isb
 	br x0
 
+#     MOV w1, #'d'
+# 	MOVZ x0, #0xFFFF, LSL #48
+# 	MOVK x0, #0x0000, LSL #32
+# 	MOVK x0, #0x3F21, LSL #16
+# 	MOVK x0, #0x5040
+# 
+#     str w1, [x0], #1
+#     str w1, [x0], #1
+# 	# MSR S3_6_C15_C10_3, x0
+# 	br x0
+# 
 	# We shouldn't ever make it here, but if we somehow do, just spin the CPU
 	b proc_hang
 
@@ -165,11 +190,3 @@ getExceptionLevel:
 	mrs x0, CURRENTEL
 	lsr x0, x0, #2
 	ret
-
-.globl memcpy
-	memcpy:
-		ldr x3, [x1], #8
-		str x3, [x0], #8
-		subs x2, x2, #8
-		b.gt memcpy
-		ret

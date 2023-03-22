@@ -5,6 +5,7 @@
 #include "timer/timer.h"
 #include "interrupts/toggle.h"
 #include "mmio.h"
+#include "paging/paging.h"
 #include "libk/memzero.h"
 #include "sys-registers/timer.h"
 #include "paging/alloc.h"
@@ -41,11 +42,11 @@ void kmain(void) {
   kprintf("[time = %d] UART has been initialized...\n", get32(TIMER_CLO));
   kprintf("[time = %d] Current Kernel Exception Level: %d\n", get32(TIMER_CLO), getExceptionLevel());
 
-  // init_interrupt_request_table();
-  // kprintf("[time = %d] Interrupt Request Table has been set up\n", get32(TIMER_CLO));
+  init_interrupt_request_table();
+  kprintf("[time = %d] Interrupt Request Table has been set up\n", get32(TIMER_CLO));
 
-  init_timer();
-  kprintf("[time = %d] Raspberry Pi Hardware Timer Has been set up\n", get32(TIMER_CLO));
+  //init_timer();
+  //kprintf("[time = %d] Raspberry Pi Hardware Timer Has been set up\n", get32(TIMER_CLO));
 
   init_rpi_interrupt_handler();
   kprintf("[time = %d] Raspberry Pi interrupt controller has been configured \n", get32(TIMER_CLO));
@@ -70,30 +71,41 @@ void kmain(void) {
   kprintf("PGD Table Dump:\n");
   for (int i = 0; i < 512; i++) {
     unsigned long curr = *(pgd + i);
-    kprintf("[%d] %d\n", i, curr);
+    kprintf("[index = %d][physical address = %p] %d\n", i, ((char *) pgd) + i*4,curr);
   }
 
   pgd += 512;
   kprintf("PUD Table Dump:\n");
   for (int i = 0; i < 512; i++) {
     unsigned long curr = *(pgd + i);
-    kprintf("[%d] %d\n", i, curr);
+    kprintf("[index = %d][physical address = %p] %d\n", i, ((char *) pgd) + i*4, curr);
+
   }
 
   pgd += 512;
   kprintf("PMD Table Dump:\n");
   for (int i = 0; i < 512; i++) {
     unsigned long curr = *(pgd + i);
-    kprintf("[%d] %d (%d)\n", i, curr, (curr >> 12));
+    if (curr >= 0xFFFF00003F00000) {
+      *(pgd + i) |= MMU_FLAGS;
+    } else {
+      *(pgd + i) |= MMU_DEVICE_FLAGS;
+    }
+    kprintf("[index = %d][physical address = %p] %d (%d)\n", i,((char *) pgd) + i*4 ,curr, (curr >> 12));
   }
 
-  asm volatile ("ldr x0, =kmain");
-  asm volatile ("lsl x0, x0, #17");
-  asm volatile ("lsr x0, x0, #17");
-  asm volatile ("br x0");
-  while (1) {
-    kprintf("*");
-  }
+
+  //kprintf("Attempting an invalid instruction, should crash...\n");
+  //asm volatile ("MSR S3_6_C15_C10_3, x0");
+  //kprintf("Made it out alive\n");
+
+  //asm volatile ("ldr x0, =kmain");
+  //asm volatile ("lsl x0, x0, #17");
+  //asm volatile ("lsr x0, x0, #17");
+  //asm volatile ("br x0");
+  //while (1) {
+  //  kprintf("*");
+  //}
   /*
 
   char *context_switching_mem = (char *) alloc_page();
@@ -109,3 +121,13 @@ void kmain(void) {
   spinAndInc("");
   */
 }
+
+void kmain_succeed_turn_on_MMU() {
+  while (1) {
+    kprintf("You made history\n....");
+  }
+}
+
+  void verifie(unsigned long param) {
+    kprintf("verifie has been called...\n%d\n", param);
+  }

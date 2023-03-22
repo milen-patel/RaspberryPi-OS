@@ -8,7 +8,7 @@
 bool LOGGING_ENABLED = true;
 
 // Prints a digit as a string
-void print_digits(long n) {
+void print_digits(unsigned long n) {
   if (n < 0) {
     uart_send('-');
     n = -n;
