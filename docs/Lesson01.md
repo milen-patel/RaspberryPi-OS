@@ -17,8 +17,8 @@ As you can see, there is a non-trivial amount of work that happens before the Pi
 
 I intentionally omitted full details in parts of this section because things can get very technical very fast. If you are interested in reading more about the boot process, then feel free to check out some of these links:
 
- * https://www.nayab.xyz/rpi3b-elinux/embedded-linux-rpi3-030-boot-process
- * https://www.lions-wing.net/maker/raspberry-1/boot.html
- * http://www.diy.ind.in/raspberry-pi/55-run-scripts-on-startup-in-raspberry-pi
+ * [Source 1](https://www.nayab.xyz/rpi3b-elinux/embedded-linux-rpi3-030-boot-process)
+ * [Source 2](https://www.lions-wing.net/maker/raspberry-1/boot.html)
+ * [Source 3](http://www.diy.ind.in/raspberry-pi/55-run-scripts-on-startup-in-raspberry-pi)
 
  It's also worth noting that this process is largely different for each model of the Raspberry Pi. For the sake of this tutorial, I will be using a Raspberry Pi Model 3. Although I wanted to purchase a Model 4 to keep things up to date, I couldn't justify the $100+ resale price at the time when my Model 3 was performing flawlessly.
