@@ -2,6 +2,7 @@
 layout: default
 title: Makefiles
 parent: Build an Operating System
+nav_order: 4
 ---
 # **Lesson 03** - Makefiles
 

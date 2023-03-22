@@ -2,6 +2,7 @@
 layout: default
 title: Booting the Raspberry Pi
 parent: Build an Operating System
+nav_order: 5
 ---
 # **Lesson 04** - Booting the Raspberry Pi
 
