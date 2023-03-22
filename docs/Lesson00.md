@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Lesson 00
+title: Introduction
 parent: Build an Operating System
 ---
 # **Lesson 00** - Introduction and Motivation

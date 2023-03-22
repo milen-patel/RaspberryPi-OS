@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Lesson 02
+title: Cross Compiling from x86 to ARMv8
 parent: Build an Operating System
 ---
 # **Lesson 02** - Cross Compiling from x86 to ARMv8

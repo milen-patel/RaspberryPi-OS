@@ -1,73 +1,131 @@
 ---
 layout: default
-title: Lesson 03
+title: Makefiles
 parent: Build an Operating System
 ---
-# **Lesson 03** - Booting the Raspberry Pi
+# **Lesson 03** - Makefiles
 
-By this point, we have motivated the context for this project and explained what happens from the moment you plug in your Raspberry Pi to the time at which `kernel8.img` is loaded from the SD Card into memory and given execution. The next logical step is to go ahead and build a simple kernel and get it running on our device. It's worth noting, that for the first number of tutorials, we will be building out fundamental building blocks of our operating system before we even begin exploring various OS concepts.
+In this lesson, I'm going to divert slightly from the script but with well intentions. You're probably reading this to learn how to build an OS, but it would be wrong for me to skip over the essential tools that I used to write my code. The goal for these tutorials is to be able to follow along from scratch, so I feel this tutorial is necessary.
 
-You are probably used to writing code in C (or likely an even higher level language) but we begin our journey with good old assembly. In this tutorial, we will eventually initialize the C runtime environment and make the transition to C code, but the initial lines of the kernel must be written in aarch64 assembly.
+Although we haven't started writing the source code for our kernel, when we do, it will get incredibly messy incredibly fast. For that reason, we will be splitting our project into two different directories. 
+* `/src` will contain all of the source code files - this includes both C (.c) and assembly (.S) files.
+* `/include` will contain all of our header files (.h). Header files are going to be very useful as we split our project into multiple files. I am assuming that you have enough knowledge of the C language to deal with these. If you don't, there are plenty of materials freely available online, so don't stress!
+* `/build` If we have 100 source files, then using gcc, we will have to compile each of these source files into a corresponding object (.o) file before we can link them all together. If we didn't group all of these object files into a folder together, our project would get really messy. For that exact reason, we are going to create an empty build directory. Every time we need to recompile the project, we will compile all of the object files and instruct gcc to store them in our build directory. Then, when it becomes time to link them together, we can ignore the mess inside this directory and simply examine the singular kernel file which will be the result of linking all of the object files together.
 
-I will create a new file called `boot.S` whose contents appear as such:
+I will follow these directory conventions for the remainder of the project, with very little deviation. Although not necessary, these directories will help increase the readability of our directory and this is generally considered good programming practice. 
+
+Previously, I mentioned that our project will quickly grow both in complexity and in number of files. Every time we want to recompile our project, it would be tedious to have to recompile each source file and then link them together. Fortunately, [GNU's Make](https://www.gnu.org/software/make/manual/make.html) is a powerful solution to this problem. We will have to create one Makefile, and once we have it correctly initialized, we will always be able to recompile our entire kernel using one command, regardless of the number of source/header files!
+
+Lets look at an example of a Makefile:
 
 ```
-.global _start
+CC=gcc
+CFLAGS=-Wall -g
 
-_start:
-	wfe
- 	b _start
+all: my_program
+
+my_program: main.c helper.c
+	$(CC) $(CFLAGS) -o my_program main.c helper.c
+
+clean:
+	rm -f my_program
 ```
 
-This trivial program, if compiled, would run on the Rasberry Pi and serve as a minimal (yet useless) kernel. So, what exactly is this doing? The first line is is used to define a symbol that is visible to the linker. In this case, the symbol being defined is `_start`, which is typically the entry point for an AArch64 program (which is precisely how we are using it here).
+This Makefile has three targets:
 
-The `_start` label defines the beginning of the code section and tells the assembler that this is where program execution should begin. The next instructions in the code section are executed sequentially until the program terminates.
+* `all` is the default target, which is built when no target is specified. In this case, it builds my_program.
+* `my_program` is the main target. It depends on main.c and helper.c, which are the source files. The Makefile uses the $(CC) and $(CFLAGS) variables to specify the compiler and its flags. Finally, it creates an executable binary named my_program.
+* `clean` is a utility target that removes the binary my_program.
 
-In this specific code snippet, the `wfe` instruction stands for "wait for event" and is a processor hint instruction. It causes the processor to enter a low-power state and wait for an event to occur, such as an interrupt or an exception.
+To compile a program with make, you can simple execute `make (rule)` in your command line. So to compile our C program (which is composed of two C files), we can execute `make all`. And to delete the program, we can execute `make clean`.
 
-The `b _start` instruction is a branch instruction that redirects program execution back to the _start label. This creates an infinite loop, where the processor waits for an event to occur, and then immediately returns to the beginning of the code section to wait again. This is commonly used as a placeholder in embedded programs where the main loop is triggered by an interrupt or some other external event. In our case, it serves absolutely no use. Surely enough, however, if we were to compile this and put it into our Rasberry Pi, things would be happening.
+If you looked at the Make documentation I linked earlier in this tutorial, you can see that there are countless features and capabilities for this tool. Since Make can be used with any type of software project, the majority of its features will be irrelevant for our work. So, lets look at the Makefile we will use for all future lessons
 
-Clearly, we are at a bottle neck, so now would be a convenient time to figure out how to jump to C code so we can do something like `printf("Hello OS\n")`. Fortunately, there is little work required to get out of assmebly: All we need to do is clear the BSS section. But what is this?
-
-The BSS (Block Started by Symbol) section is a portion of the data segment in a program's memory layout that contains uninitialized static variables and global variables that are initialized to zero. The BSS section is set up by the program loader at runtime to ensure that these variables are initialized to zero before the program starts executing.
-
-When jumping from assembly code to C code, it is essential to ensure that the BSS section is properly initialized to zero before the C code begins executing. This is because C code often relies on these variables being initialized to zero, and if they are not properly initialized, the program may behave unexpectedly or crash.
-
-This can be done in C code using a static initialization or by explicitly setting the BSS section to zero in assembly code.
-
-We will add the following lines of code to our boot file:
 ```
-    // Clean the BSS section, expected by C runtime environment
-    ldr     x1, =__bss_start     // Start address
-    ldr     w2, =__bss_size      // Size of the section
+# Don't use normal gcc, use the arm cross compiler from Lesson 02
+ARMGNU = /usr/local/Cellar/aarch64-unknown-linux-gnu/11.2.0/bin/aarch64-unknown-linux-gnu
 
-	// Compare and branch on 0
-3:  cbz     w2, 4f               
-	// Store 0 (xzr is the zero register) to address in x1 in memory
-    str     xzr, [x1], #8
+COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only -g 
+ASMOPS = -Iinclude -g
 
-	// Decrease remaining bss size needed to be cleared by 1
-    sub     w2, w2, #1
-    cbnz    w2, 3b               // Loop if non-zero
+BUILD_DIR = build
+SRC_DIR = src
+
+all : clean kernel8.img
+
+clean :
+	rm -rf $(BUILD_DIR) *.img 
+	rm -f binary.txt
+
+$(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
+C_FILES = $(wildcard $(SRC_DIR)/*.c)
+ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
+OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
+OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+
+DEP_FILES = $(OBJ_FILES:%.o=%.d)
+-include $(DEP_FILES)
+
+kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
+	$(ARMGNU)-ld -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
+	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary kernel8.img
+
+binary: $(SRC_DIR)/linker.ld $(OBJ_FILES)
+	$(ARMGNU)-ld -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES) -g 
+	objdump -d --source build/kernel8.elf >binary.txt
+	open binary.txt
 ```
-The code starts by loading the start address of the BSS section into register x1 and the size of the section into register w2. The program then enters a loop, labeled as 3, that will continue until all the memory in the BSS section has been cleared.
 
-Inside the loop, the code uses the cbz instruction to check whether the remaining BSS size, stored in w2, is zero. If w2 is zero, the program jumps to the label 4, which is presumably where the program's main function begins. Otherwise, the program stores zero to the address stored in x1, which points to the current memory location in the BSS section, using the str instruction. It then increments the value in x1 by eight bytes to move to the next memory location in the BSS section.
+I would like to give credit for this Makefile to [this](https://github.com/s-matyukevich/raspberry-pi-os) source. I have modified it slightly and added my own targets but they deserve the majority of the credit.
 
-Finally, the program decrements w2 by one to indicate that one more memory location has been cleared, and uses the cbnz instruction to loop back to the label 3 if w2 is still non-zero. If w2 is zero, the program continues execution at label 4.
+Lets look at what this Makefile does line-by-line:
 
-You may have on question: where do the `__bss_start` and `__bss_size` constants come from. These will come from our linker file, but more will come on that shortly.
+0. `ARMGNU` variable specifies the path to the ARM cross-compiler.
+1. `COPS` variable specifies the compiler options that will be passed to the C compiler.
+2. `ASMOPS` variable specifies the assembler options that will be passed to the assembler.
+3. `BUILD_DIR` variable specifies the directory where the build artifacts will be stored.
+4. `SRC_DIR` variable specifies the directory where the source files are located.
+5. The `all` target depends on `clean` and `kernel8.img` targets. The clean target removes the build artifacts and kernel8.img target creates the kernel image.
+6. The `clean` target removes the build directory, kernel image, and binary.txt file.
+7. The following two rules define how to compile C and assembly source files into object files. These rules use the gcc compiler to compile C and assembly source files into object files with -MMD option that will create dependency files, which are used to track dependencies between source files.
+```$(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
+    mkdir -p $(@D)
+    $(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
-Now that we have cleared the BSS section, we are ready to jump to our c code, so I will add one final line to the boot file which does so:
+$(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
+    mkdir -p $(@D)
+    $(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 ```
-bl main
+
+8. `C_FILES`, `ASM_FILES`, and `OBJ_FILES` variables are defined using the wildcard function to automatically find all C and assembly source files and object files. `DEP_FILES` variable contains the corresponding dependency files.
+9. `-include $(DEP_FILES)` is a special directive that includes the dependency files into the Makefile.
+10. The kernel8.img target depends on the linker script $(SRC_DIR)/linker.ld and all object files. 
+11. The `ld` command links the object files into an ELF file and objcopy command creates a binary image that can be loaded onto the Raspberry Pi's SD card.
+12. The `binary` target is used to generate a binary dump of the kernel image and opens it in a text editor. This target uses objdump to generate a dump of the kernel image and open command to open the generated binary.txt file. This will be very useful for debugging once we reach the tutorial on exception since exceptions can indicate the line number for the code which generated an exception (in the case of an exception being generated by problematic code).
+
+Lastly, I wanted to explain what some of the flags we are passing to gcc mean:
+1. -Wall : This flag enables all warning messages that the compiler can generate. It is generally good practice to use this flag while developing code as it can help you catch potential issues and bugs.
+2. -nostdlib : This flag tells the compiler not to use the standard system libraries during the linking stage. This is typically used when building embedded systems or other specialized applications that do not require the standard libraries.
+3. -nostartfiles : This flag tells the compiler not to use the standard startup files during the linking stage. These startup files are typically used to set up the program's execution environment, and are not required in all cases.
+4. -ffreestanding : This flag tells the compiler that the resulting executable will not run in a full-featured operating system environment, and that certain assumptions about the environment can be made. This flag is typically used when building code for embedded systems or other specialized environments.
+5. -Iinclude : This flag adds the include directory to the list of directories that the compiler searches for header files.
+6. -mgeneral-regs-only : This flag tells the compiler to generate code that only uses general-purpose registers, and to avoid using any other CPU-specific features. This is useful when building code that is intended to run on a variety of different hardware platforms.
+7. -g : This flag tells the compiler to include debug information in the resulting executable. This can be useful when debugging code, as it allows you to step through the program's execution and inspect the values of variables and other program state. This will be used for the binary target in our Makefile.
+
+If not everything makes sense to you, that is totally fine. Understanding Makefiles is largely irrelelvant to the subsequent tutorials, but is something you will likely encounter later in your career as a developer, so I thought they were worth discussing in a separate chapter. The only thing left to answer, is where do we put our Makefile? For the sake of our project, we will let it sit at the top level directory, so our final project structure will look something like this:
+```
+.
+├── Makefile
+├── build
+├── include
+└── src
 ```
 
-We then create a new file, `kernel.c`, which provides an implementation for the aforementioned main method:
-```c
-void main() {
-    // ???
-}
-```
-
-We would like to add a call to printf in our main method, but we have no standard library! Since we are building the operating system, we must define our own implementation of printf (and all other C library functions that we require). But, we don't even have a means of printing to a screen yet! Read on to see how we solve this issue
+If you feel lost, your one takeaway from this tutorial should be that you can compile the OS at any point by executing `make`, regardless of the number of files.

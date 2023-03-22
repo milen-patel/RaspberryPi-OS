@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Lesson 01
+title: Understanding the Rasberry Pi Boot Sequence
 parent: Build an Operating System
 ---
 # **Lesson 01** - Understanding the Rasberry Pi Boot Sequence
