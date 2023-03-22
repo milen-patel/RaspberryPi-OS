@@ -6,13 +6,15 @@ permalink: /
 has_children: true
 ---
 
-# A Raspberry Pi Operating Sytem
+# Build Your Own Operating System
 
-# Tutorials
+# Released Lessons
 * **Lesson 00** - Introduction and Motivation
 * **Lesson 01** - Understanding the Rasberry Pi Boot Sequence
 * **Lesson 02** - Cross Compiling from x86 to ARMv8
-* **Lesson XX** - Booting the Pi
+* **Lesson 03** - Booting the Raspberry Pi
+
+# Work In Progress
 * **Lesson XX** - Setting up the C Runtime Environment
 * **Lesson XX** - Setting up UART
 * **Lesson XX** - Simplying Compilation with a Makefile
@@ -24,6 +26,7 @@ has_children: true
 * **Lesson XX** - Implementing `malloc()` and `free()`
 * **Lesson XX** - Understanding threads and processes
 * **Lesson XX** - Context Switching
+* **Interlude XX** - An Alternative Approach To Context Switching
 * **Lesson XX** - User Threads vs. Kernel Threads
 * **Lesson XX** - Virtualizing Kernel Memory
 * **Lesson XX** - Virtualizing User Space
