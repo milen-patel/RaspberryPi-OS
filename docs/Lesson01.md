@@ -2,6 +2,7 @@
 layout: default
 title: Understanding the Rasberry Pi Boot Sequence
 parent: Build an Operating System
+nav_order: 2
 ---
 # **Lesson 01** - Understanding the Rasberry Pi Boot Sequence
 

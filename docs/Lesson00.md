@@ -2,6 +2,7 @@
 layout: default
 title: Introduction
 parent: Build an Operating System
+nav_order: 1
 ---
 # **Lesson 00** - Introduction and Motivation
 

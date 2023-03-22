@@ -96,7 +96,8 @@ Lets look at what this Makefile does line-by-line:
 5. The `all` target depends on `clean` and `kernel8.img` targets. The clean target removes the build artifacts and kernel8.img target creates the kernel image.
 6. The `clean` target removes the build directory, kernel image, and binary.txt file.
 7. The following two rules define how to compile C and assembly source files into object files. These rules use the gcc compiler to compile C and assembly source files into object files with -MMD option that will create dependency files, which are used to track dependencies between source files.
-```$(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
+```
+$(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
     mkdir -p $(@D)
     $(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
