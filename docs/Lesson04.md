@@ -71,4 +71,4 @@ void main() {
 }
 ```
 
-We would like to add a call to printf in our main method, but we have no standard library! Since we are building the operating system, we must define our own implementation of printf (and all other C library functions that we require). But, we don't even have a means of printing to a screen yet! Read on to see how we solve this issue
+We would like to add a call to `printf` in our main method, but we have no standard library! Since we are building the operating system, we must define our own implementation of printf (and all other C library functions that we require). But, we don't even have a means of printing to a screen yet! Read on to see how we solve this issue

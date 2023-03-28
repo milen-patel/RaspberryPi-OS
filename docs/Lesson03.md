@@ -122,17 +122,45 @@ Lastly, I wanted to explain what some of the flags we are passing to gcc mean:
 6. -mgeneral-regs-only : This flag tells the compiler to generate code that only uses general-purpose registers, and to avoid using any other CPU-specific features. This is useful when building code that is intended to run on a variety of different hardware platforms.
 7. -g : This flag tells the compiler to include debug information in the resulting executable. This can be useful when debugging code, as it allows you to step through the program's execution and inspect the values of variables and other program state. This will be used for the binary target in our Makefile.
 
+**Linker Files**
+
+If you read the Makefile close enough or attempted to compile a sample project, you will quickly notice that we are missing one final component: the linker file. As mentioned in the previous paragraphs, we are compiling each of our source files into a corresponding object file and then linking all of the object files into one file that is the kernel image itself. Since we are compiling the files into a kernel image and not a standard executable program (i.e. `a.out`), we need the ability to specify certain desires to gcc. The linker file is one such way of telling our compiler how to layout the program across memory. Linker files become complicated, so I won't spend much time explaining the linker file we need for this project. If you are interested in learning more about the nuances of linker files, I highly reccomend visiting [TODO]() site.
+
+For the sake of our tutorial, all you will need to do is create a file named `linker.ld` within the `src` directory and paste the following contents:
+
+```
+/*
+ * Without this file, clang would compile the individual .c and .S files and then link them as if this was a user space program.
+ *
+ * However, this is obviously not a user space program and the kernel needs to specify certain absolute addresses to adhere to the convention expected by the hardware.
+ */
+ SECTIONS
+{
+    .text.boot : { *(.text.boot) }
+    .text :  { *(.text) }
+    .rodata : { *(.rodata) }
+    .data : { *(.data) }
+
+    . = ALIGN(0x8);
+    bss_begin = .;
+    .bss : { *(.bss*) } 
+    bss_end = .;
+}
+```
+
+**Conclusion**
+
 If not everything makes sense to you, that is totally fine. Understanding Makefiles is largely irrelelvant to the subsequent tutorials, but is something you will likely encounter later in your career as a developer, so I thought they were worth discussing in a separate chapter. The only thing left to answer, is where do we put our Makefile? For the sake of our project, we will let it sit at the top level directory, so our final project structure will look something like this:
+
 ```
 .
 ├── Makefile
-
 ├── build
-
 ├── include
-
 └── src
-
+    └── linker.ld
 ```
 
 If you feel lost, your one takeaway from this tutorial should be that you can compile the OS at any point by executing `make`, regardless of the number of files.
+
+**Note**: The source code for this, and all subsequent, lessons is located under the `lesson` directory in the GitHub Repository.
